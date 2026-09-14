@@ -224,12 +224,31 @@ function lastVerifiedMetric(value, period, source, sourceUrl, extra = {}) {
 }
 
 async function rsfCountry(country) {
-  const url = 'https://rsf.org/en/ranking';
-  const text = cleanText(await fetchText(url));
-  const name = regexEscape(country.name);
-  const m = text.match(new RegExp(`(?:^|\s)(\d{1,3})\s+${name}\s+([0-9.,]+)`, 'i'));
-  if (!m) return null;
-  return metric(Number(m[1]), null, 'Reporters Without Borders', url, { unit: 'rank', outOf: 180, score: Number(String(m[2]).replace(',', '.')) });
+  const rankingUrl = 'https://rsf.org/en/ranking';
+  const countryUrl = `https://rsf.org/en/country/${slugifyCountry(country.name)}`;
+
+  // Prefer the country page because RSF exposes the current edition, rank / total,
+  // overall score and the five component indicators together there.
+  try {
+    const text = cleanText(await fetchText(countryUrl));
+    const current = text.match(/Index\s+(20\d{2})\s+(\d{1,3})\s*\/\s*(\d{1,3})\s+Score\s*:\s*([0-9.,]+)/i);
+    if (current) {
+      return metric(Number(current[2]), current[1], 'Reporters Without Borders', countryUrl, {
+        unit: 'rank',
+        outOf: Number(current[3]),
+        score: Number(String(current[4]).replace(',', '.'))
+      });
+    }
+  } catch {}
+
+  // Fall back to the global ranking page if a country page slug changes.
+  try {
+    const text = cleanText(await fetchText(rankingUrl));
+    const name = regexEscape(country.name);
+    const m = text.match(new RegExp(`(?:^|\s)(\d{1,3})\s+${name}\s+([0-9.,]+)`, 'i'));
+    if (m) return metric(Number(m[1]), null, 'Reporters Without Borders', rankingUrl, { unit: 'rank', outOf: 180, score: Number(String(m[2]).replace(',', '.')) });
+  } catch {}
+  return null;
 }
 
 async function globalSdgCountry(country) {
@@ -570,7 +589,7 @@ async function topicDemocracy(country) {
     voice, corruptionControl, governmentEffectiveness, ruleOfLaw,
     cpiScore: cpi?.score || (isIndia ? lastVerifiedMetric(39, '2025', 'Transparency International', 'https://www.transparency.org/en/countries/india', {unit:'0–100'}) : null),
     cpiRank: cpi?.rank || (isIndia ? lastVerifiedMetric(91, '2025', 'Transparency International', 'https://www.transparency.org/en/countries/india', {unit:'rank', outOf:182}) : null),
-    pressFreedomRank: pressFreedom,
+    pressFreedomRank: pressFreedom || (isIndia ? lastVerifiedMetric(157, '2026', 'Reporters Without Borders', 'https://rsf.org/en/country/india', {unit:'rank', outOf:180, score:31.96}) : null),
     peaceRank: peace || (isIndia ? lastVerifiedMetric(127, '2026', 'Institute for Economics & Peace', 'https://www.visionofhumanity.org/resources/global-peace-index/', {unit:'rank', outOf:163}) : null)
   };
 }
