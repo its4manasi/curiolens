@@ -42,12 +42,27 @@ const SNAPSHOTS = [
 ];
 
 const WORLD_INSIGHTS = {
-  Vietnam: { metric: 'Strong school completion', copy: 'Study teacher support, learning expectations and completion.' },
-  Bangladesh: { metric: 'Girls’ participation', copy: 'Study access, incentives and community support.' },
-  Indonesia: { metric: 'Large diverse system', copy: 'Study how a decentralised system manages local variation.' },
-  China: { metric: 'System scale', copy: 'Study teacher deployment and school networks at scale.' },
-  Brazil: { metric: 'Local governance', copy: 'Study local delivery and regional variation.' },
-  India: { metric: 'National baseline', copy: 'Use India as context before comparing internationally.' },
+  Estonia: {
+    metric: '85% reached baseline maths proficiency in PISA 2022',
+    copy: 'Estonia combines strong learning outcomes with substantial school-level responsibility. India could study teacher support, school autonomy and early identification of learning gaps rather than copy a single policy.',
+    source: { name: 'OECD · PISA 2022 Estonia', href: 'https://www.oecd.org/en/publications/pisa-2022-results-volume-i-and-ii-country-notes_ed6fbcc5-en/estonia_dafed886-en.html', period: '2022' }
+  },
+  Finland: {
+    metric: 'Master’s-level preparation is the standard for most teachers',
+    copy: 'Finland treats teaching as a highly trained profession with strong pedagogical and research preparation. India could study deeper pre-service training, mentoring and continuing professional learning.',
+    source: { name: 'OECD · Teacher Professional Learning', href: 'https://www.oecd.org/en/publications/teacher-professional-learning_0cceeddf-en/full-report/summary-of-education-systems_0d050321.html', period: 'Finland profile' }
+  },
+  Switzerland: {
+    metric: 'About 9 in 10 upper-secondary VET students are apprentices',
+    copy: 'Switzerland connects vocational education closely with employers and paid workplace learning. India could study stronger school-to-work pathways, employer partnerships and recognised apprenticeships.',
+    source: { name: 'OECD · VET in Switzerland', href: 'https://www.oecd.org/en/publications/vocational-education-and-training-systems-in-nine-countries_1a86eb6c-en/full-report/vocational-education-and-training-in-switzerland_051e4a43.html', period: '2025 review' }
+  },
+  Vietnam: {
+    metric: 'Strong learning despite lower income per person',
+    copy: 'Vietnam is useful for studying learning expectations, teacher support and system focus in a large lower-middle-income context.',
+    source: SOURCES.worldBank
+  },
+  India: { metric: 'National baseline', copy: 'Use India as context before comparing internationally. Country examples are prompts for investigation, not copy-and-paste policy prescriptions.', source: SOURCES.worldBank },
 };
 
 const cleanKey = (value = '') => value.toString().toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -243,7 +258,7 @@ export default function EducationDashboard() {
 
     <section className="map-layout-grid" id="maps"><IndiaBenchmarkMap focusState={focusState} onStateSelect={setFocusState} benchmarkStates={BENCHMARKS}/><StateDistrictMap state={focusState} district={district} onDistrictSelect={(name) => districts.includes(name) && setDistrict(name)}/></section>
 
-    <section className="world-section-grid"><WorldEducationMap activeCountry={country} onCountrySelect={(name) => WORLD_INSIGHTS[name] && setCountry(name)} countries={Object.keys(WORLD_INSIGHTS)}/><aside className="world-insight-panel"><span className="section-tag">Ideas worth studying</span><h2>{country}</h2><strong>{worldInsight.metric}</strong><p>{worldInsight.copy}</p><div className="country-buttons">{Object.keys(WORLD_INSIGHTS).filter((c) => c !== 'India').map((c) => <button className={country === c ? 'active' : ''} key={c} onClick={() => setCountry(c)}>{c}</button>)}</div><CompactSource source={SOURCES.worldBank} live/></aside></section>
+    <section className="world-section-grid"><WorldEducationMap activeCountry={country} onCountrySelect={(name) => WORLD_INSIGHTS[name] && setCountry(name)} countries={Object.keys(WORLD_INSIGHTS)}/><aside className="world-insight-panel"><span className="section-tag">Ideas worth studying</span><h2>{country}</h2><strong>{worldInsight.metric}</strong><p>{worldInsight.copy}</p><div className="policy-note"><b>Could India use this?</b><span>Study the mechanism and evidence first, then test it in Indian state and district conditions.</span></div><div className="country-buttons">{Object.keys(WORLD_INSIGHTS).filter((c) => c !== 'India').map((c) => <button className={country === c ? 'active' : ''} key={c} onClick={() => setCountry(c)}>{c}</button>)}</div><CompactSource source={worldInsight.source || SOURCES.worldBank} live/></aside></section>
 
     <section className="bottom-insight-grid"><article className="insight-card"><span className="section-tag">Where are the gaps?</span><h2>{focusState} vs available benchmarks</h2><div className="gap-list-modern">{gapRows.map((g) => <div key={g.key}><div><span>{g.label}</span><strong>{g.gap === undefined ? '—' : `${g.gap > 0 ? '+' : ''}${g.gap}${g.key === 'ptr' ? '' : ' pp'}`}</strong></div><div className="gap-rail"><i style={{width:g.gap === undefined ? '0%' : `${Math.min(100,Math.abs(g.gap)*3)}%`}}/></div></div>)}</div></article><article className="insight-card"><span className="section-tag">What could help?</span><h2>Questions worth investigating</h2><ol className="way-forward-list"><li><b>Teacher availability</b><span>Where are classrooms most crowded?</span></li><li><b>Secondary transition</b><span>Where are students leaving before Classes 10–12?</span></li><li><b>Girls’ participation</b><span>Where do persistent participation gaps remain?</span></li><li><b>Learning outcomes</b><span>Are students learning what their grade expects?</span></li></ol></article></section>
 

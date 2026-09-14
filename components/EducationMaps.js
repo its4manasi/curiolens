@@ -99,9 +99,25 @@ function GeoMap({ url, ariaLabel, selected = [], focus = '', active = '', onSele
             const wrap = e.currentTarget.ownerSVGElement?.parentElement;
             if (!wrap) return;
             const rect = wrap.getBoundingClientRect();
-            setPointer({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+            const rawX = e.clientX - rect.left;
+            const rawY = e.clientY - rect.top + 16;
+            setPointer({
+              x: Math.min(Math.max(rawX, 76), Math.max(rect.width - 76, 76)),
+              y: Math.min(Math.max(rawY, 12), Math.max(rect.height - 40, 12))
+            });
           };
-          return <path key={`${key}-${index}`} d={pathForGeometry(feature.geometry, bounds, width, height, world ? 4 : 10)} className={classNames} onMouseEnter={(e) => { setHover(name); moveTooltip(e); }} onMouseMove={moveTooltip} onMouseLeave={() => setHover('')} onClick={() => onSelect?.(name)} tabIndex={onSelect ? 0 : -1} onFocus={() => setHover(name)} onBlur={() => setHover('')} onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && onSelect) onSelect(name); }}><title>{name}</title></path>;
+          const focusTooltip = (e) => {
+            const svg = e.currentTarget.ownerSVGElement;
+            const wrap = svg?.parentElement;
+            if (!svg || !wrap) return;
+            const wrapRect = wrap.getBoundingClientRect();
+            const shapeRect = e.currentTarget.getBoundingClientRect();
+            setPointer({
+              x: Math.min(Math.max(shapeRect.left + shapeRect.width / 2 - wrapRect.left, 76), Math.max(wrapRect.width - 76, 76)),
+              y: Math.min(Math.max(shapeRect.bottom - wrapRect.top + 10, 12), Math.max(wrapRect.height - 40, 12))
+            });
+          };
+          return <path key={`${key}-${index}`} d={pathForGeometry(feature.geometry, bounds, width, height, world ? 4 : 10)} className={classNames} onMouseEnter={(e) => { setHover(name); moveTooltip(e); }} onMouseMove={moveTooltip} onMouseLeave={() => setHover('')} onClick={() => onSelect?.(name)} tabIndex={onSelect ? 0 : -1} onFocus={(e) => { setHover(name); focusTooltip(e); }} onBlur={() => setHover('')} onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && onSelect) onSelect(name); }}><title>{name}</title></path>;
         })}
       </svg>
       <div className={`map-tooltip ${hover ? 'is-visible' : ''}`} style={hover ? { left: pointer.x, top: pointer.y } : undefined}>{hover || 'Hover over the map'}</div>
