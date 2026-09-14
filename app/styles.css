@@ -1397,3 +1397,176 @@ html, body { width: 100%; max-width: 100%; overflow-x: clip; }
   .health-index-grid{grid-template-columns:1fr}
   .health-index-grid article{min-height:0}
 }
+
+/* v13.23 · development symmetry + clearer rank context */
+.development-data-dashboard .live-index-section{
+  width:100%;
+  max-width:none;
+  box-sizing:border-box;
+}
+.development-data-dashboard .live-index-grid{
+  align-items:stretch;
+}
+.development-data-dashboard .live-index-grid article{
+  min-height:220px;
+  height:100%;
+  box-sizing:border-box;
+}
+.development-data-dashboard .live-index-grid article>small{
+  min-height:34px;
+}
+.development-data-dashboard .live-index-grid article>p{
+  min-height:60px;
+  margin:4px 0 8px;
+  color:#566f6b;
+  font-size:.8rem;
+  line-height:1.48;
+}
+.development-data-dashboard .development-global-index .live-index-grid article>strong{
+  font-size:clamp(1.65rem,2.7vw,2.25rem);
+  letter-spacing:-.035em;
+}
+@media(max-width:900px){
+  .development-data-dashboard .live-index-grid article{min-height:205px}
+}
+@media(max-width:560px){
+  .development-data-dashboard .live-index-grid article{min-height:0}
+  .development-data-dashboard .live-index-grid article>small,
+  .development-data-dashboard .live-index-grid article>p{min-height:0}
+}
+
+/* v13.24 · desktop education selector symmetry + local dropdown polish */
+@media (min-width: 761px) {
+  /* State selector: balanced two-column layout instead of a small control floating in empty space. */
+  .edu-toolbar-compact-v22 {
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) minmax(340px,.9fr) !important;
+    grid-template-rows:auto auto !important;
+    align-items:start !important;
+    gap:10px 28px !important;
+    padding:18px 22px !important;
+  }
+  .edu-toolbar-compact-v22 .toolbar-intro {
+    grid-column:1 !important;
+    grid-row:1 / span 2 !important;
+    align-self:center !important;
+    max-width:680px !important;
+  }
+  .edu-toolbar-compact-v22 .toolbar-controls-state-only {
+    grid-column:2 !important;
+    grid-row:1 !important;
+    width:100% !important;
+    max-width:520px !important;
+    justify-self:start !important;
+  }
+  .edu-toolbar-compact-v22 .education-location-status-compact {
+    grid-column:2 !important;
+    grid-row:2 !important;
+    width:100% !important;
+    max-width:520px !important;
+    min-height:0 !important;
+    padding:7px 10px !important;
+    white-space:normal !important;
+    justify-self:start !important;
+  }
+
+  /* Local explorer starts at half-width on desktop. A second selector uses the other half. */
+  .local-explorer-controls {
+    display:grid !important;
+    grid-template-columns:minmax(280px,520px) minmax(280px,520px) !important;
+    justify-content:start !important;
+    gap:14px !important;
+    align-items:end !important;
+    max-width:1060px !important;
+    overflow:visible !important;
+    position:relative !important;
+    z-index:30 !important;
+  }
+  .local-explorer-controls > .smart-select:only-child {
+    grid-column:1 !important;
+    width:100% !important;
+    max-width:520px !important;
+  }
+
+  /* District/local menus open DOWN, anchored to their own trigger, never across the screen. */
+  .local-explorer-controls .smart-select {
+    position:relative !important;
+    isolation:isolate !important;
+    min-width:0 !important;
+  }
+  .local-explorer-controls .smart-select-layer {
+    position:absolute !important;
+    top:calc(100% + 8px) !important;
+    bottom:auto !important;
+    left:0 !important;
+    right:auto !important;
+    width:100% !important;
+    height:0 !important;
+    min-width:0 !important;
+    overflow:visible !important;
+    pointer-events:none !important;
+    z-index:12000 !important;
+  }
+  .local-explorer-controls .smart-select-menu {
+    position:absolute !important;
+    top:0 !important;
+    bottom:auto !important;
+    left:0 !important;
+    right:auto !important;
+    width:100% !important;
+    min-width:100% !important;
+    max-width:100% !important;
+    max-height:300px !important;
+    overflow:hidden !important;
+    padding:8px !important;
+    border-radius:14px !important;
+    pointer-events:auto !important;
+    box-shadow:0 18px 42px rgba(17,70,65,.16) !important;
+  }
+  .local-explorer-controls .smart-select-options {
+    max-height:230px !important;
+    overflow-y:auto !important;
+    overscroll-behavior:contain !important;
+    scrollbar-gutter:stable !important;
+  }
+  .local-explorer-controls .smart-select-search-wrap {
+    position:sticky !important;
+    top:0 !important;
+    z-index:2 !important;
+    background:#fff !important;
+    padding:2px 2px 8px !important;
+  }
+}
+
+@media (min-width: 761px) and (max-width: 1100px) {
+  .edu-toolbar-compact-v22 {
+    grid-template-columns:minmax(0,1fr) minmax(300px,.85fr) !important;
+  }
+  .local-explorer-controls {
+    grid-template-columns:minmax(260px,1fr) minmax(260px,1fr) !important;
+    max-width:100% !important;
+  }
+}
+
+/* v13.25 — global search + reliable maps/place navigation */
+.v9-search-wrap{position:relative;display:flex;align-items:center}
+.v9-search-popover{position:absolute;top:calc(100% + 14px);right:-12px;width:min(430px,calc(100vw - 32px));background:#fff;border:1px solid #cfe3df;border-radius:18px;box-shadow:0 20px 54px rgba(15,60,57,.16);padding:10px;z-index:1200}
+.v9-search-popover::before{content:"";position:absolute;right:22px;top:-7px;width:13px;height:13px;background:#fff;border-left:1px solid #cfe3df;border-top:1px solid #cfe3df;transform:rotate(45deg)}
+.v9-search-head{position:relative;z-index:1;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:9px;border:1px solid #bcdad5;border-radius:13px;padding:0 12px;background:#f8fcfb;color:#176d66}
+.v9-search-head input{min-width:0;width:100%;height:46px;border:0;outline:0;background:transparent;color:#0d3345;font:inherit;font-size:14px}
+.v9-search-head input::placeholder{color:#6f858c}
+.v9-search-head button{border:0;background:transparent;color:#557078;font-size:24px;line-height:1;cursor:pointer;padding:5px}
+.v9-search-results{display:grid;gap:4px;margin-top:8px;max-height:360px;overflow:auto;padding:2px}
+.v9-search-results>a{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:11px 12px;border-radius:11px;color:#0b3444;text-decoration:none}
+.v9-search-results>a:hover,.v9-search-results>a:focus-visible{background:#eaf7f4;outline:none}
+.v9-search-results>a span{display:grid;gap:2px;min-width:0}
+.v9-search-results>a b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v9-search-results>a small{font-size:11px;color:#71878d}
+.v9-search-results>a strong{color:#168d82;font-size:20px;font-weight:600}
+.v9-search-empty{padding:16px 12px;color:#657b82;font-size:13px;line-height:1.5}
+
+@media (max-width: 760px){
+  .v9-search-popover{position:fixed;top:72px;left:12px;right:12px;width:auto;max-height:calc(100dvh - 92px);border-radius:16px;z-index:1500}
+  .v9-search-popover::before{display:none}
+  .v9-search-results{max-height:calc(100dvh - 170px)}
+}

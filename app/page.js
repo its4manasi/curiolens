@@ -21,7 +21,7 @@ export default function HomePage() {
         <p>Choose a topic and a place. CurioLens turns public data into simple comparisons, clear explanations and links back to the original source.</p>
         <div className="hero-actions">
           <Link className="primary-button" href="/#topics">Explore topics</Link>
-          <Link className="ghost-button" href="/local-bodies/">Choose a place</Link>
+          <a className="ghost-button" href="/?place=1">Choose a place</a>
         </div>
         <div className="v9-trust-line"><span>Simple language</span><i/><span>Local to global</span><i/><span>Source-linked</span></div>
       </div>
