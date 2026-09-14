@@ -1,10 +1,15 @@
+'use client';
+
+import useLiveTopicData from './useLiveTopicData';
+
 const sourceLinks = {
   gdp: 'https://www.mospi.gov.in/uploads/latestreleasesfiles/1767782498513-GDP%20Press%20Note%20on%20FAE%202025-26.pdf',
   plfs: 'https://www.mospi.gov.in/uploads/publications_reports/publications_reports1780040415321_0624fb13-fb47-40bc-b470-7c7e9635c3ef_PLFS_2025_F_REV_29052026.pdf',
   hces: 'https://mospi.gov.in/sites/default/files/publication_reports/HCES%20FactSheet%202023-24.pdf',
   hcesReport: 'https://mospi.gov.in/sites/default/files/publication_reports/Final_Report_HCES_2023-24L.pdf',
   rbi: 'https://systemhealth.rbi.org.in/Scripts/PublicationsView.aspx?id=22484',
-  worldBank: 'https://data.worldbank.org/?locations=IN-1W'
+  worldBank: 'https://data.worldbank.org/?locations=IN-1W',
+  nitiFiscal: 'https://www.niti.gov.in/divisions/division/states-coordination-development-planning'
 };
 
 const stateIncome = [
@@ -32,7 +37,12 @@ function MetricCard({ eyebrow, value, title, text, source, tone = 'mint' }) {
 }
 
 export default function EconomyDashboard() {
+  const { metrics: live, status: liveStatus } = useLiveTopicData('economy');
   const maxIncome = Math.max(...stateIncome.map(([,v]) => v));
+  const fiscal = live.fiscalHealth;
+  const fiscalStates = Array.isArray(fiscal?.states) ? fiscal.states : [];
+  const fiscalTop = fiscalStates.slice(0, 6);
+  const fiscalMax = Math.max(1, ...fiscalTop.map((row) => Number(row.score) || 0));
 
   return <div className="economy-dashboard">
     <section className="econ-question-strip">
@@ -42,9 +52,11 @@ export default function EconomyDashboard() {
       <div><span>4</span><b>Who is being left behind?</b><small>Gaps across states and groups</small></div>
     </section>
 
+    <section className="econ-live-note"><span className={`live-status ${liveStatus}`}>{liveStatus === 'ready' ? 'Latest World Bank series checked' : liveStatus === 'loading' ? 'Checking latest data…' : 'Using verified fallback where live data is unavailable'}</span></section>
+
     <section className="econ-headline-grid">
-      <MetricCard eyebrow="Headline economy" value="7.4%" title="Real GDP growth" text="India's first advance estimate for FY 2025–26. GDP tells us how fast total economic output is growing — not what a typical household earns." source={sourceLinks.gdp} tone="blue"/>
-      <MetricCard eyebrow="Work" value="3.1%" title="Unemployment rate" text="PLFS 2025 usual-status unemployment rate for people aged 15+. A low unemployment rate can still coexist with low pay, informal work or too little work." source={sourceLinks.plfs} tone="mint"/>
+      <MetricCard eyebrow={`Headline economy · ${live.gdpGrowth?.period || 'official estimate'}`} value={live.gdpGrowth?.value != null ? `${Number(live.gdpGrowth.value).toFixed(1)}%` : '7.4%'} title="Real GDP growth" text="Latest non-null annual growth value is read from the World Bank series when available. The official MoSPI estimate remains the India-specific fallback." source={live.gdpGrowth?.sourceUrl || sourceLinks.gdp} tone="blue"/>
+      <MetricCard eyebrow={`Work · ${live.unemployment?.period || 'PLFS'}`} value={live.unemployment?.value != null ? `${Number(live.unemployment.value).toFixed(1)}%` : '3.1%'} title="Unemployment rate" text="Latest comparable World Bank/ILO-modelled series where available. Read alongside PLFS because definitions and reference periods differ." source={live.unemployment?.sourceUrl || sourceLinks.plfs} tone="mint"/>
       <MetricCard eyebrow="Household spending" value="₹4,122" title="Rural monthly spending per person" text="Average monthly per-capita consumption expenditure in rural India in 2023–24. Urban India was ₹6,996." source={sourceLinks.hces} tone="sand"/>
       <MetricCard eyebrow="Casual work" value="₹453/day" title="Average casual-labour earnings" text="PLFS 2025 all-India average for casual labour outside public works. Men averaged ₹489 and women ₹324 per day." source={sourceLinks.plfs} tone="violet"/>
     </section>
@@ -108,9 +120,34 @@ export default function EconomyDashboard() {
 
       <article className="econ-panel econ-world-panel">
         <div className="econ-panel-head"><div><span className="section-kicker">Global context</span><h2>Per-capita GDP is useful — but incomplete</h2></div><SourceLink href={sourceLinks.worldBank} children="World Bank"/></div>
-        <div className="econ-world-compare"><div><span>India</span><strong>$2,703</strong><small>2025, current US$</small></div><div><span>World</span><strong>$14,406</strong><small>2025, current US$</small></div></div>
+        <div className="econ-world-compare"><div><span>India</span><strong>{live.gdpPerCapita?.value != null ? `$${Math.round(Number(live.gdpPerCapita.value)).toLocaleString()}` : '$2,703'}</strong><small>{live.gdpPerCapita?.period || '2025'} · current US$</small></div><div><span>World</span><strong>$14,406</strong><small>benchmark shown from latest verified page fallback</small></div></div>
         <p>Useful for comparing the scale of average economic output internationally, but not a substitute for household income, median consumption, inequality or public services.</p>
       </article>
+    </section>
+
+    <section className="econ-panel econ-fiscal-panel">
+      <div className="econ-panel-head">
+        <div>
+          <span className="section-kicker">State finances · NITI Aayog</span>
+          <h2>Fiscal health is more than the deficit</h2>
+          <p>CurioLens discovers the newest Fiscal Health Index edition from NITI Aayog instead of naming an edition year in code. The index combines expenditure quality, revenue mobilisation, fiscal prudence, debt and debt sustainability.</p>
+        </div>
+        <SourceLink href={fiscal?.reportUrl || fiscal?.sourceUrl || sourceLinks.nitiFiscal} children="Latest NITI report"/>
+      </div>
+      <div className="econ-fiscal-meta">
+        <div><small>Latest edition found</small><strong>{fiscal?.edition || 'Checking…'}</strong><span>{fiscal?.fiscalYear ? `uses FY ${fiscal.fiscalYear} data` : 'edition/year read from NITI'}</span></div>
+        <div><small>Coverage</small><strong>{fiscalStates.length || '—'}</strong><span>states parsed from the current report</span></div>
+        <div><small>Dimensions</small><strong>5</strong><span>spending · revenue · prudence · debt · sustainability</span></div>
+      </div>
+      {fiscalTop.length ? <div className="econ-fiscal-ranking">
+        {fiscalTop.map((row) => <div className="econ-fiscal-row" key={row.state}>
+          <span className="econ-fiscal-rank">#{row.rank}</span>
+          <span className="econ-fiscal-state">{row.state}</span>
+          <div className="econ-fiscal-track"><span style={{width:`${Math.max(6,(row.score/fiscalMax)*100)}%`}}/></div>
+          <b>{row.score.toFixed(1)}</b>
+        </div>)}
+      </div> : <p className="econ-note">The live NITI report could not be parsed right now. CurioLens will retry from the cached/current source on the next request; no fiscal rank is invented.</p>}
+      <p className="econ-note">NITI ranks major states and North-Eastern/Himalayan states in separate comparison groups, so rank numbers should be read within the group shown in the source report.</p>
     </section>
 
     <section className="econ-way-forward">

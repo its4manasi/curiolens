@@ -1,5 +1,7 @@
 'use client';
 
+import useLiveTopicData from './useLiveTopicData';
+
 const hunger=[
   {country:'China', score:5, label:'<5'},
   {country:'Brazil', score:6.4, label:'6.4'},
@@ -10,10 +12,19 @@ const hunger=[
 ];
 function Source({href, children}){return <a className="evidence-link" href={href} target="_blank" rel="noreferrer">{children} ↗</a>}
 export default function DevelopmentDashboard(){
+  const { metrics: live, status: liveStatus } = useLiveTopicData('development');
+  const latest = [
+    ['Gini index', live.gini, (v) => Number(v).toFixed(1)],
+    ['Poverty at lower-middle-income line', live.poverty, (v) => `${Number(v).toFixed(1)}%`],
+    ['Life expectancy', live.lifeExpectancy, (v) => `${Number(v).toFixed(1)} years`],
+    ['Under-5 mortality', live.under5, (v) => `${Number(v).toFixed(1)} / 1,000`],
+  ].filter(([,m]) => m?.value != null);
   return <div className="public-data-dashboard development-data-dashboard">
+    <section className="live-index-section compact-live-section"><div className="live-index-head"><div><span className="section-tag">Latest available India series</span><h2>Development indicators update on different schedules.</h2><p>The API asks each World Bank series for its newest non-null India observation instead of requesting a fixed year.</p></div><span className={`live-status ${liveStatus}`}>{liveStatus === 'ready' ? 'Latest observations checked' : liveStatus === 'loading' ? 'Checking latest data…' : 'Using verified page values'}</span></div>{latest.length > 0 && <div className="live-index-grid">{latest.map(([label,m,fmt]) => <article key={label}><span>{label}</span><strong>{fmt(m.value)}</strong><small>{m.period}</small><Source href={m.sourceUrl}>{m.source}</Source></article>)}</div>}</section>
+
     <section className="public-metric-grid compact-four">
-      <article className="public-metric-card coral"><span>Global Hunger Index</span><strong>25.8</strong><b>India: rank 102 / 123</b><p>The 2025 GHI classifies India’s hunger level as serious.</p><Source href="https://www.globalhungerindex.org/india.html">GHI 2025</Source></article>
-      <article className="public-metric-card amber"><span>Child wasting</span><strong>18.7%</strong><b>India, GHI 2025 inputs</b><p>Wasting means a child has low weight for height — a sign of acute undernutrition.</p><Source href="https://www.globalhungerindex.org/india.html">Check indicator</Source></article>
+      <article className="public-metric-card coral"><span>Global Hunger Index</span><strong>{live.ghiScore?.value ?? 25.8}</strong><b>India: rank {live.ghiRank?.value ?? 102} / {live.ghiRank?.outOf ?? 123}</b><p>The latest GHI page currently classifies India’s hunger level as serious.</p><Source href={live.ghiScore?.sourceUrl || "https://www.globalhungerindex.org/india.html"}>Latest GHI</Source></article>
+      <article className="public-metric-card amber"><span>Child wasting</span><strong>{live.childWasting?.value != null ? `${live.childWasting.value}%` : '18.7%'}</strong><b>India · latest GHI inputs</b><p>Wasting means a child has low weight for height — a sign of acute undernutrition.</p><Source href={live.childWasting?.sourceUrl || "https://www.globalhungerindex.org/india.html"}>Check indicator</Source></article>
       <article className="public-metric-card mint"><span>Consumption inequality</span><strong>25.5</strong><b>Gini index, 2022</b><p>A lower Gini means consumption is more evenly distributed. This measure does not fully capture wealth inequality at the top.</p><Source href="https://pip.worldbank.org/country-profiles/IND">World Bank PIP</Source></article>
       <article className="public-metric-card blue"><span>Multidimensional poverty</span><strong>17.74%</strong><b>Headcount, 2022</b><p>This asks whether households face overlapping deprivations, not only low income.</p><Source href="https://pip.worldbank.org/country-profiles/IND">World Bank</Source></article>
     </section>

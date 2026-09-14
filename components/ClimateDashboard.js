@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import UiIcon from './UiIcon';
+import useLiveTopicData from './useLiveTopicData';
 
 const sources = {
   nasa: 'https://science.nasa.gov/earth/explore/earth-indicators/global-temperature/',
@@ -96,13 +97,31 @@ function SourceLink({ href, children = 'Check source' }) {
 }
 
 export default function ClimateDashboard() {
+  const { metrics: live, status: liveStatus } = useLiveTopicData('climate');
   const [stateMetric, setStateMetric] = useState('overall');
   const selectedState = useMemo(() => stateViews[stateMetric], [stateMetric]);
+  const cards = metricCards.map((card) => {
+    if (card.label === 'Global surface temperature' && live.temperature?.value != null) return { ...card, value: `${Number(live.temperature.value).toFixed(2)}°C`, year: live.temperature.period, source: live.temperature.source, href: live.temperature.sourceUrl };
+    if (card.label === 'CO₂ in the atmosphere' && live.co2?.value != null) return { ...card, value: `${Number(live.co2.value).toFixed(2)} ppm`, year: live.co2.period, source: live.co2.source, href: live.co2.sourceUrl };
+    if (card.label === 'Methane in the atmosphere' && live.methane?.value != null) return { ...card, value: `${Number(live.methane.value).toFixed(2)} ppb`, year: live.methane.period, source: live.methane.source, href: live.methane.sourceUrl };
+    if (card.label === 'CO₂ per person — India' && live.co2pc?.value != null) return { ...card, value: `${Number(live.co2pc.value).toFixed(2)} t`, year: live.co2pc.period, source: live.co2pc.source, href: live.co2pc.sourceUrl };
+    return card;
+  });
+
+  const globalRanks = [
+    live.epiOverall && { label: 'Environmental Performance Index', value: `#${live.epiOverall.value}`, detail: `Score ${live.epiOverall.score ?? '—'} · ${live.epiOverall.period}`, source: live.epiOverall },
+    live.epiBiodiversity && { label: 'Biodiversity & habitat', value: `#${live.epiBiodiversity.value}`, detail: `EPI sub-index · ${live.epiBiodiversity.period}`, source: live.epiBiodiversity },
+    live.epiAir && { label: 'Air quality', value: `#${live.epiAir.value}`, detail: `EPI sub-index · ${live.epiAir.period}`, source: live.epiAir },
+    live.epiForests && { label: 'Forests', value: `#${live.epiForests.value}`, detail: `EPI sub-index · ${live.epiForests.period}`, source: live.epiForests },
+    live.ccpi && { label: 'Climate Change Performance Index', value: `#${live.ccpi.value}`, detail: `${live.ccpi.period || 'Latest edition'} · mitigation performance`, source: live.ccpi },
+    live.forestShare && { label: 'Forest area', value: `${Number(live.forestShare.value).toFixed(1)}%`, detail: `${live.forestShare.period} · share of India’s land area`, source: live.forestShare },
+    live.renewableElectricity && { label: 'Renewable electricity', value: `${Number(live.renewableElectricity.value).toFixed(1)}%`, detail: `${live.renewableElectricity.period} · renewable share of electricity output`, source: live.renewableElectricity },
+  ].filter(Boolean);
 
   return (
     <div className="climate-data-dashboard">
       <section className="climate-metric-grid" aria-label="Key climate indicators">
-        {metricCards.map((card) => (
+        {cards.map((card) => (
           <article className={`climate-metric-card tone-${card.tone}`} key={card.label}>
             <div className="climate-metric-icon"><UiIcon name={card.icon} size={24} /></div>
             <div className="climate-metric-label">{card.label}</div>
@@ -112,6 +131,23 @@ export default function ClimateDashboard() {
             <div className="climate-metric-source"><span>{card.source}</span><SourceLink href={card.href} /></div>
           </article>
         ))}
+      </section>
+
+
+      <section className="live-index-section">
+        <div className="live-index-head">
+          <div><span className="section-tag">India in the world</span><h2>Environmental and climate rankings</h2><p>CurioLens reads the newest edition exposed by each source. Rankings are not interchangeable: each index measures a different question.</p></div>
+          <span className={`live-status ${liveStatus}`}>{liveStatus === 'ready' ? 'Live sources checked' : liveStatus === 'loading' ? 'Checking latest sources…' : 'Showing verified fallback where needed'}</span>
+        </div>
+        <div className="live-index-grid">
+          {globalRanks.length ? globalRanks.map((item) => <article key={item.label}><span>{item.label}</span><strong>{item.value}</strong><small>{item.detail}</small><SourceLink href={item.source.sourceUrl} children={item.source.source} /></article>) : <>
+            <article><span>Environmental Performance Index</span><strong>#176</strong><small>2024 · score 27.6</small><SourceLink href="https://epi.yale.edu/country/2024/IND" children="Yale EPI" /></article>
+            <article><span>Biodiversity & habitat</span><strong>#178</strong><small>2024 EPI sub-index</small><SourceLink href="https://epi.yale.edu/country/2024/IND" children="Yale EPI" /></article>
+            <article><span>Climate Change Performance Index</span><strong>#23</strong><small>CCPI 2026</small><SourceLink href="https://ccpi.org/country/ind/" children="CCPI" /></article>
+            <article><span>Total forest area</span><strong>#9</strong><small>GFRA 2025 · global rank</small><SourceLink href="https://www.pib.gov.in/PressReleasePage.aspx?PRID=2182269&lang=2&reg=3" children="FAO / PIB" /></article>
+          </>}
+        </div>
+        <p className="live-index-footnote">Forest rank is based on the latest FAO Global Forest Resources Assessment publication cycle; it is not an annual index. India was also reported 3rd in annual net forest-area gain and 5th among major forest carbon sinks in GFRA 2025.</p>
       </section>
 
       <section className="climate-compare-row">

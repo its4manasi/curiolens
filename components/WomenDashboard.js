@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import useLiveTopicData from './useLiveTopicData';
 
 const sources = {
   education: 'https://www.mohfw-dohfw.gov.in/static/uploads/2026/05/111ff4a13ca36b5cabb7f94aec5bb0ce.pdf',
@@ -105,8 +106,24 @@ function MiniBars({ lens }) {
 }
 
 export default function WomenDashboard() {
+  const { metrics: live, status: liveStatus } = useLiveTopicData('women');
   const [selected, setSelected] = useState('education');
-  const active = useMemo(() => lenses.find((x) => x.id === selected) || lenses[0], [selected]);
+  const dynamicLenses = useMemo(() => lenses.map((lens) => {
+    if (lens.id === 'employment' && live.femaleLfpr?.value != null) return { ...lens, main: `${Number(live.femaleLfpr.value).toFixed(1)}%`, year: `${live.femaleLfpr.source} · ${live.femaleLfpr.period}`, source: live.femaleLfpr.sourceUrl, a: Number(live.femaleLfpr.value) };
+    if (lens.id === 'representation' && live.womenParliament?.value != null) return { ...lens, main: `${Number(live.womenParliament.value).toFixed(1)}%`, year: `${live.womenParliament.source} · latest`, source: live.womenParliament.sourceUrl, a: Number(live.womenParliament.value) };
+    if (lens.id === 'assets' && live.femaleAccount?.value != null) return { ...lens, gap: `Female account ownership ${Number(live.femaleAccount.value).toFixed(1)}%`, secondarySource: live.femaleAccount.sourceUrl };
+    return lens;
+  }), [live]);
+  const active = useMemo(() => dynamicLenses.find((x) => x.id === selected) || dynamicLenses[0], [selected, dynamicLenses]);
+  const globalIndices = [
+    live.globalGenderGapRank && { label: 'Global Gender Gap Index', value: `#${live.globalGenderGapRank.value}`, detail: `${live.globalGenderGapRank.period}${live.globalGenderGapParity?.value != null ? ` · ${Number(live.globalGenderGapParity.value).toFixed(1)}% parity` : ''}`, source: live.globalGenderGapRank },
+    live.wpsRank && { label: 'Women, Peace & Security Index', value: `#${live.wpsRank.value}`, detail: `${live.wpsRank.outOf ? `of ${live.wpsRank.outOf}` : 'latest edition'}${live.wpsScore?.value != null ? ` · score ${live.wpsScore.value}` : ''}`, source: live.wpsRank },
+    live.womenParliament && { label: 'Women in Lok Sabha', value: `${Number(live.womenParliament.value).toFixed(1)}%`, detail: 'Current lower-house representation', source: live.womenParliament },
+    live.femaleLfpr && { label: 'Female labour-force participation', value: `${Number(live.femaleLfpr.value).toFixed(1)}%`, detail: `${live.femaleLfpr.period} · World Bank latest available`, source: live.femaleLfpr },
+    live.wblLaw && { label: 'Women, Business & the Law — laws', value: `${Number(live.wblLaw.value).toFixed(1)} / 100`, detail: `${live.wblLaw.period} · legal frameworks`, source: live.wblLaw },
+    live.wblSupport && { label: 'Women, Business & the Law — support', value: `${Number(live.wblSupport.value).toFixed(1)} / 100`, detail: `${live.wblSupport.period} · supportive frameworks`, source: live.wblSupport },
+    live.wblEnforcement && { label: 'Women, Business & the Law — enforcement', value: `${Number(live.wblEnforcement.value).toFixed(1)} / 100`, detail: `${live.wblEnforcement.period} · enforcement perceptions`, source: live.wblEnforcement },
+  ].filter(Boolean);
 
   return (
     <div className="women-v13-dashboard">
@@ -124,8 +141,25 @@ export default function WomenDashboard() {
         </div>
       </section>
 
+
+      <section className="live-index-section women-live-index">
+        <div className="live-index-head">
+          <div><span className="women-v13-section-label">India in global gender measures</span><h2>More than one index tells the story.</h2><p>These measures answer different questions: parity, economic opportunity, peace and security, and political representation. CurioLens checks stable source pages/APIs for the newest available value.</p></div>
+          <span className={`live-status ${liveStatus}`}>{liveStatus === 'ready' ? 'Latest sources checked' : liveStatus === 'loading' ? 'Checking latest sources…' : 'Verified fallback shown where needed'}</span>
+        </div>
+        <div className="live-index-grid">
+          {globalIndices.length ? globalIndices.map((item) => <article key={item.label}><span>{item.label}</span><strong>{item.value}</strong><small>{item.detail}</small><SourceLink href={item.source.sourceUrl}>{item.source.source}</SourceLink></article>) : <>
+            <article><span>Global Gender Gap Index</span><strong>#131</strong><small>WEF 2025 · 64.4% parity</small><SourceLink href="https://www.weforum.org/publications/series/global-gender-gap-report/">World Economic Forum</SourceLink></article>
+            <article><span>Women, Peace & Security Index</span><strong>#131</strong><small>2025/26 · score 0.607</small><SourceLink href="https://giwps.georgetown.edu/the-index/">GIWPS</SourceLink></article>
+            <article><span>Women, Business & the Law</span><strong>58 / 100</strong><small>2026 · legal frameworks</small><SourceLink href="https://wbl.worldbank.org/content/dam/sites/wbl/economies/india.pdf">World Bank</SourceLink></article>
+            <article><span>Women in Lok Sabha</span><strong>13.8%</strong><small>Current IPU lower-house measure</small><SourceLink href="https://www.ipu.org/parlement/IN">IPU</SourceLink></article>
+          </>}
+        </div>
+        <p className="live-index-footnote">Women, Business and the Law uses a different methodology from the Global Gender Gap Index. CurioLens keeps each source, edition and definition visible rather than combining them into one score.</p>
+      </section>
+
       <nav className="women-v13-lens-nav" aria-label="Women and gender topics">
-        {lenses.map((lens, index) => (
+        {dynamicLenses.map((lens, index) => (
           <button key={lens.id} className={selected === lens.id ? 'is-active' : ''} onClick={() => setSelected(lens.id)}>
             <span>{String(index + 1).padStart(2, '0')}</span>{lens.title}
           </button>
@@ -133,7 +167,7 @@ export default function WomenDashboard() {
       </nav>
 
       <section className="women-v13-card-grid">
-        {lenses.map((lens) => (
+        {dynamicLenses.map((lens) => (
           <article key={lens.id} className={`women-v13-card ${lens.tone} ${selected === lens.id ? 'is-active' : ''}`} onClick={() => setSelected(lens.id)}>
             <header>
               <span className="women-v13-card-icon">{lens.icon}</span>
