@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import UiIcon from '../../components/UiIcon';
+import ClimateDashboard from '../../components/ClimateDashboard';
 
 const groups = [
   ['climate','What contributes?',['Electricity & energy','Transport','Industry','Buildings','Agriculture','Livestock','Deforestation & land use','Waste']],
@@ -11,18 +12,18 @@ const groups = [
 export const metadata = { title: 'Climate' };
 
 export default function ClimatePage(){
-  return <div className="v9-topic-page">
-    <section className="v9-topic-hero">
-      <div><span className="section-tag">Climate change</span><h1>What is changing — and what is driving it?</h1><p>Follow the chain from emissions and land use to heat, rainfall, extreme weather and practical responses.</p><div className="hero-actions"><a className="primary-button" href="#questions">Explore the questions</a><Link className="ghost-button" href="/sources/">Check climate sources</Link></div></div>
-      <div className="v9-climate-visual" aria-hidden="true"><span><UiIcon name="climate" size={44}/></span><strong>Cause → Change → People → Response</strong><small>One story, viewed at global, national and local level.</small></div>
+  return <div className="v9-topic-page climate-v10-page">
+    <section className="v9-topic-hero climate-v10-hero">
+      <div><span className="section-tag">Climate change</span><h1>See the warming. Follow the emissions. Understand the impact.</h1><p>Start with the planet, compare India with the world, then see how greenhouse gases connect to states, glaciers and everyday risks.</p><div className="hero-actions"><a className="primary-button" href="#climate-data">See the numbers</a><Link className="ghost-button" href="/sources/">Verify climate sources</Link></div></div>
+      <div className="v9-climate-visual climate-v10-visual" aria-hidden="true"><span><UiIcon name="climate" size={44}/></span><strong>Temperature → CO₂ → Methane → Ice</strong><small>Big climate ideas, explained with source-backed numbers.</small><div className="climate-hero-orbit orbit-one">+1.19°C</div><div className="climate-hero-orbit orbit-two">425.6 ppm CO₂</div></div>
     </section>
 
-    <section className="v9-place-strip"><span><UiIcon name="pin" size={18}/> Viewing</span><button>India</button><b>›</b><button>All states</button><b>›</b><button>All local areas</button><a href="#questions">Change place</a></section>
+    <section className="v9-place-strip"><span><UiIcon name="pin" size={18}/> Viewing</span><button>Global</button><b>›</b><button>India</button><b>›</b><button>State view</button><a href="#state-view">Jump to states</a></section>
+
+    <div id="climate-data"><ClimateDashboard /></div>
 
     <section className="v9-climate-grid" id="questions">
       {groups.map(([icon,title,items],idx) => <article className="v9-climate-card" key={title}><div className="v9-climate-card-head"><span><UiIcon name={icon} size={23}/></span><div><small>0{idx+1}</small><h2>{title}</h2></div></div><ul>{items.map(item=><li key={item}><span>{item}</span><b>›</b></li>)}</ul></article>)}
     </section>
-
-    <section className="v9-climate-feature"><div className="v9-climate-image" aria-label="Climate image placeholder"><span>Public-domain image area</span><strong>NASA / NOAA / USGS / licensed Wikimedia imagery</strong></div><div><span className="section-tag">Featured explainer</span><h2>From global warming to a local heatwave</h2><p>Connect the global trend to what people experience locally: rising temperatures, urban heat, tree cover, outdoor work and public-health risk.</p><Link className="primary-button" href="/articles/">Read short explainers</Link></div></section>
   </div>;
 }

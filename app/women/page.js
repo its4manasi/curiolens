@@ -1,3 +1,34 @@
-export const metadata = { title: 'Women' };
-const items=['Education','Health','Employment','Income','Safety','Political representation','Property & finance','Digital access','Welfare'];
-export default function Page(){return <div className="topic-page-v5"><section className="topic-hero-v5 women-hero"><div><span className="section-tag">Women & gender</span><h1>Half the population, visible in every dataset.</h1><p>See how women are doing across education, health, work, safety, representation and access to opportunity.</p></div><div className="topic-hero-art women-art"><span>Women</span><b>Education · Work · Health · Voice</b></div></section><section className="subtopic-grid-v5">{items.map(x=><article key={x}><strong>{x}</strong><span>Compare country, state, district and local outcomes.</span></article>)}</section></div>}
+import WomenDashboard from '../../components/WomenDashboard';
+
+export const metadata = {
+  title: 'Women & Gender | CurioLens',
+  description: 'Compare nine dimensions of women’s opportunity in India: education, health, work, income, safety, representation, assets, digital access and welfare.',
+};
+
+export default function WomenPage() {
+  return (
+    <main className="women-v13-page">
+      <section className="women-v13-hero">
+        <div className="women-v13-hero-copy">
+          <span className="women-v13-kicker">Women & gender · India</span>
+          <h1>Half the population. Nine ways to ask if opportunity is equal.</h1>
+          <p>
+            No single ranking can explain women’s lives. CurioLens puts education, health,
+            work, income, safety, political voice, assets, digital access and welfare side by side.
+          </p>
+          <div className="women-v13-pills">
+            <span>Compare women ↔ men</span>
+            <span>India ↔ world where comparable</span>
+            <span>Verify every source</span>
+          </div>
+        </div>
+        <aside className="women-v13-hero-note">
+          <span>How to read this page</span>
+          <strong>Gap first. Rank second.</strong>
+          <p>A national average can hide large differences by state, income, rural/urban location and age.</p>
+        </aside>
+      </section>
+      <WomenDashboard />
+    </main>
+  );
+}
