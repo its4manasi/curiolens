@@ -4,13 +4,12 @@ import UiIcon from '../components/UiIcon';
 const topics = [
   ['education','Education','Schools, learning, teachers and higher education.','/education/'],
   ['health','Health','Access, outcomes, nutrition and public health.','/health/'],
-  ['women','Women & Gender','Education, work, safety, health and representation.','/women/'],
-  ['development','Development','Jobs, housing, infrastructure and human development.','/development/'],
-  ['democracy','Democracy','Participation, representation and local government.','/democracy/'],
-  ['welfare','Welfare','Food, pensions, housing and social protection.','/welfare/'],
-  ['climate','Climate','Causes, impacts, exposure and solutions.','/climate/'],
-  ['economy','Economy','Income, jobs, prices and opportunity.','/economy/'],
-  ['local','Local Bodies','Move from country to state, district and local area.','/local-bodies/'],
+  ['women','Women & Society','Education, work, health, safety, assets and representation.','/women/'],
+  ['economy','Economy & Development','Jobs, income, welfare, inequality, housing and infrastructure.','/development/'],
+  ['democracy','Democracy & Governance','Elections, corruption, representation, public spending and local government.','/democracy/'],
+  ['climate','Climate & Environment','Emissions, warming, air, water, forests, biodiversity and resilience.','/climate/'],
+  ['science','Science','Discoveries, experiments, medicine and the ideas shaping how we understand the world.','/science/'],
+  ['space','Space & Technology','ISRO, global missions, satellites, AI, semiconductors and frontier technology.','/space-tech/'],
 ];
 
 export default function HomePage() {
