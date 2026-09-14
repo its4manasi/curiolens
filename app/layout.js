@@ -17,9 +17,14 @@ export default function RootLayout({ children }) {
             <span className="brand-mark">C</span>
             <span>CurioLens</span>
           </a>
-          <nav aria-label="Main navigation">
+          <nav className="main-nav" aria-label="Main navigation">
+            <a href="/">Home</a>
+            <a href="/education/">Education</a>
+            <a href="/health/">Health</a>
+            <a href="/economy/">Economy</a>
+            <a href="/environment/">Environment</a>
+            <a href="/local-bodies/">Local Bodies</a>
             <a href="/articles/">Stories</a>
-            <a href="/#topics">Topics</a>
             <a href="/about/">About</a>
           </nav>
         </header>
