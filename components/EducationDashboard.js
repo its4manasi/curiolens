@@ -75,17 +75,38 @@ function localBodyLabel(areaType, district) {
 function StateComparisonChart({ metricKey }) {
   const metric = METRICS.find((m) => m.key === metricKey) || METRICS[0];
   const rows = ['Bihar', ...BENCHMARKS].map((name) => ({ name, value: STATE_DATA[name][metric.key] }));
+  const sorted = [...rows].sort((a, b) => metric.better === 'lower' ? a.value - b.value : b.value - a.value);
+  const benchmarkRows = rows.filter((row) => row.name !== 'Bihar');
+  const benchmarkAvg = Math.round(benchmarkRows.reduce((sum, row) => sum + row.value, 0) / benchmarkRows.length);
+  const best = sorted[0];
+  const bihar = rows.find((row) => row.name === 'Bihar');
+  const gap = metric.better === 'lower' ? bihar.value - benchmarkAvg : benchmarkAvg - bihar.value;
+  const maxValue = Math.max(...rows.map((row) => row.value), metric.max || 0);
+
   return (
-    <div className="comparison-chart" role="img" aria-label={`${metric.formal} across Bihar and five benchmark states`}>
-      <div className="chart-grid-lines"><i/><i/><i/><i/><i/></div>
-      <div className="chart-bars">
-        {rows.map((row) => (
-          <div className="chart-column" key={row.name}>
-            <div className="chart-value">{row.value}{metric.suffix}</div>
-            <div className="chart-track"><div className={`chart-fill ${row.name === 'Bihar' ? 'is-bihar' : ''}`} style={{ height: `${Math.min(100, row.value / metric.max * 100)}%` }} /></div>
-            <div className="chart-label">{row.name}</div>
-          </div>
-        ))}
+    <div className="comparison-modern" role="img" aria-label={`${metric.formal} across Bihar and five benchmark states`}>
+      <div className="comparison-summary">
+        <div className="comparison-summary-card focus"><span>Bihar</span><strong>{bihar.value}{metric.suffix}</strong><small>Your focus state</small></div>
+        <div className="comparison-summary-card"><span>Benchmark average</span><strong>{benchmarkAvg}{metric.suffix}</strong><small>Average of 5 states</small></div>
+        <div className="comparison-summary-card"><span>Best benchmark</span><strong>{best.name}</strong><small>{best.value}{metric.suffix}</small></div>
+        <div className={`comparison-summary-card ${gap > 0 ? 'gap' : 'ahead'}`}><span>Gap to average</span><strong>{gap > 0 ? '+' : ''}{gap}{metric.key === 'ptr' ? '' : ' pp'}</strong><small>{gap > 0 ? 'Room to close' : 'Ahead of average'}</small></div>
+      </div>
+
+      <div className="state-rank-list">
+        {sorted.map((row, index) => {
+          const width = Math.max(8, (row.value / maxValue) * 100);
+          return (
+            <div className={`state-rank-row ${row.name === 'Bihar' ? 'is-bihar' : ''}`} key={row.name}>
+              <div className="state-rank-meta"><span className="rank-no">{index + 1}</span><strong>{row.name}</strong><span className="rank-value">{row.value}{metric.suffix}</span></div>
+              <div className="state-rank-track"><i style={{ width: `${width}%` }} /></div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="comparison-reading">
+        <span className="comparison-reading-icon">↗</span>
+        <div><strong>Read it simply</strong><p>{metric.better === 'lower' ? 'A shorter bar is better for this measure.' : 'A longer bar means a higher value.'} Bihar is highlighted so you can see the gap instantly.</p></div>
       </div>
     </div>
   );
