@@ -1,105 +1,144 @@
 'use client';
 
-const stateMarkers = [
-  { name: 'Bihar', x: 67, y: 38, focus: true },
-  { name: 'Punjab', x: 33, y: 19 },
-  { name: 'Himachal Pradesh', x: 40, y: 14 },
-  { name: 'Maharashtra', x: 42, y: 55 },
-  { name: 'Tamil Nadu', x: 49, y: 82 },
-  { name: 'Kerala', x: 40, y: 84 },
-];
+import { useEffect, useMemo, useState } from 'react';
 
-const biharDistrictMarkers = [
-  { name: 'Patna', x: 53, y: 52 },
-  { name: 'Muzaffarpur', x: 48, y: 32 },
-  { name: 'Gaya', x: 50, y: 72 },
-];
+const INDIA_GEOJSON = 'https://cdn.jsdelivr.net/gh/udit-001/india-maps-data@2884453/geojson/india.geojson';
+const BIHAR_GEOJSON = 'https://cdn.jsdelivr.net/gh/udit-001/india-maps-data@2884453/geojson/states/bihar.geojson';
+const WORLD_GEOJSON = 'https://cdn.jsdelivr.net/gh/johan/world.geo.json@master/countries.geo.json';
 
-const worldMarkers = [
-  { name: 'India', x: 67, y: 55, focus: true },
-  { name: 'Vietnam', x: 77, y: 55 },
-  { name: 'Bangladesh', x: 70, y: 51 },
-  { name: 'Indonesia', x: 79, y: 67 },
-  { name: 'Brazil', x: 34, y: 67 },
-  { name: 'China', x: 72, y: 40 },
-];
+const norm = (value = '') => value.toString().toLowerCase().replace(/[^a-z0-9]/g, '');
+const featureName = (feature) => {
+  const p = feature?.properties || {};
+  return p.st_nm || p.ST_NM || p.State_Name || p.state || p.STATE || p.NAME_1 || p.name || p.NAME || p.district || p.DISTRICT || p.District || p.dtname || p.DT_NAME || p.NAME_2 || 'Unknown';
+};
 
-function Marker({ item, active }) {
-  return (
-    <g className={`map-marker ${item.focus ? 'is-focus' : ''} ${active ? 'is-active' : ''}`}>
-      <circle cx={item.x} cy={item.y} r={item.focus || active ? 2.8 : 2.15} />
-      <circle className="map-marker-ring" cx={item.x} cy={item.y} r={item.focus || active ? 5.1 : 4.2} />
-      <text x={item.x + 4} y={item.y - 3}>{item.name}</text>
-    </g>
-  );
+function allPoints(geometry) {
+  if (!geometry) return [];
+  const coords = geometry.coordinates || [];
+  if (geometry.type === 'Polygon') return coords.flat();
+  if (geometry.type === 'MultiPolygon') return coords.flat(2);
+  return [];
 }
 
-export function IndiaBenchmarkMap() {
+function boundsFor(features) {
+  const pts = features.flatMap((f) => allPoints(f.geometry));
+  if (!pts.length) return [0, 0, 100, 100];
+  const xs = pts.map((p) => p[0]);
+  const ys = pts.map((p) => p[1]);
+  return [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)];
+}
+
+function pathForGeometry(geometry, bounds, width, height, pad = 8) {
+  const [minX, minY, maxX, maxY] = bounds;
+  const xRange = Math.max(maxX - minX, 0.0001);
+  const yRange = Math.max(maxY - minY, 0.0001);
+  const scale = Math.min((width - pad * 2) / xRange, (height - pad * 2) / yRange);
+  const dx = (width - xRange * scale) / 2;
+  const dy = (height - yRange * scale) / 2;
+  const point = ([x, y]) => [dx + (x - minX) * scale, height - (dy + (y - minY) * scale)];
+  const ringPath = (ring) => ring.map((p, i) => `${i ? 'L' : 'M'}${point(p)[0].toFixed(2)},${point(p)[1].toFixed(2)}`).join(' ') + ' Z';
+  if (geometry.type === 'Polygon') return geometry.coordinates.map(ringPath).join(' ');
+  if (geometry.type === 'MultiPolygon') return geometry.coordinates.flatMap((poly) => poly.map(ringPath)).join(' ');
+  return '';
+}
+
+function GeoMap({ url, ariaLabel, selected = [], focus = '', active = '', onSelect, divisionDistricts = [], world = false }) {
+  const [features, setFeatures] = useState([]);
+  const [hover, setHover] = useState('');
+  const [status, setStatus] = useState('loading');
+
+  useEffect(() => {
+    let alive = true;
+    fetch(url)
+      .then((r) => {
+        if (!r.ok) throw new Error('Map request failed');
+        return r.json();
+      })
+      .then((json) => {
+        if (!alive) return;
+        setFeatures(json.features || []);
+        setStatus('ready');
+      })
+      .catch(() => alive && setStatus('error'));
+    return () => { alive = false; };
+  }, [url]);
+
+  const width = world ? 760 : 620;
+  const height = world ? 330 : 420;
+  const bounds = useMemo(() => boundsFor(features), [features]);
+  const selectedNorm = new Set(selected.map(norm));
+  const divisionNorm = new Set(divisionDistricts.map(norm));
+
+  if (status === 'loading') return <div className="map-loading">Loading map…</div>;
+  if (status === 'error') return <div className="map-loading map-error">Map could not load. The rest of the dashboard still works.</div>;
+
   return (
-    <div className="map-card map-card-india">
-      <div className="map-card-heading">
-        <div>
-          <span className="kicker">Where the benchmarks are</span>
-          <h3>Bihar and five comparison states</h3>
-        </div>
-        <span className="map-chip">India</span>
-      </div>
-      <svg className="curio-map" viewBox="0 0 100 100" role="img" aria-label="Orientation map of India showing Bihar and five benchmark states">
-        <path className="india-outline" d="M34 9 L43 7 L50 10 L58 13 L63 19 L69 20 L73 28 L70 35 L76 40 L72 47 L68 51 L66 59 L60 62 L58 70 L54 76 L50 89 L45 94 L42 87 L39 79 L35 70 L29 66 L25 58 L27 50 L22 43 L25 36 L29 30 L31 22 L29 16 Z" />
-        <path className="india-northeast" d="M72 28 L80 26 L87 30 L82 36 L75 35 Z" />
-        {stateMarkers.map((item) => <Marker key={item.name} item={item} />)}
+    <div className="geo-map-wrap">
+      <svg className={`geo-map-svg ${world ? 'is-world' : ''}`} viewBox={`0 0 ${width} ${height}`} role="img" aria-label={ariaLabel}>
+        {features.map((feature, index) => {
+          const name = featureName(feature);
+          const key = norm(name);
+          const isFocus = key === norm(focus);
+          const isActive = key === norm(active);
+          const isSelected = selectedNorm.has(key);
+          const isDivision = divisionNorm.has(key);
+          const classNames = ['geo-shape', isSelected ? 'is-benchmark' : '', isFocus ? 'is-focus' : '', isActive ? 'is-active' : '', isDivision ? 'is-division' : ''].filter(Boolean).join(' ');
+          return (
+            <path
+              key={`${key}-${index}`}
+              d={pathForGeometry(feature.geometry, bounds, width, height, world ? 4 : 10)}
+              className={classNames}
+              onMouseEnter={() => setHover(name)}
+              onMouseLeave={() => setHover('')}
+              onClick={() => onSelect?.(name)}
+              tabIndex={onSelect ? 0 : -1}
+              onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && onSelect) onSelect(name); }}
+            >
+              <title>{name}</title>
+            </path>
+          );
+        })}
       </svg>
-      <p className="map-note">Bihar is the focus. Other markers are benchmark states chosen to compare different education strengths. This first map is for visual orientation; official boundary files can replace it later without changing the dashboard.</p>
+      <div className={`map-tooltip ${hover ? 'is-visible' : ''}`}>{hover || 'Hover over the map'}</div>
     </div>
   );
 }
 
-export function BiharLocalMap({ district = 'Patna' }) {
+export function IndiaBenchmarkMap({ focusState, onStateSelect, benchmarkStates }) {
   return (
-    <div className="map-card map-card-bihar">
-      <div className="map-card-heading">
-        <div>
-          <span className="kicker">Drill down</span>
-          <h3>From Bihar to your local area</h3>
-        </div>
-        <span className="map-chip">{district}</span>
+    <section className="visual-card india-map-card">
+      <div className="visual-card-head">
+        <div><span className="section-tag">India comparison</span><h3>{focusState} and benchmark states</h3></div>
+        <span className="tiny-pill">Click a state</span>
       </div>
-      <svg className="curio-map bihar-map" viewBox="0 0 100 100" role="img" aria-label={`Orientation map of Bihar highlighting ${district}`}>
-        <path className="bihar-outline" d="M9 39 L17 27 L30 24 L39 17 L54 20 L63 16 L76 23 L89 24 L94 34 L88 46 L92 57 L80 65 L70 63 L61 72 L50 68 L41 78 L30 72 L24 62 L13 58 L7 49 Z" />
-        <path className="river-line" d="M16 45 C30 40, 44 48, 58 43 S79 43, 89 39" />
-        {biharDistrictMarkers.map((item) => <Marker key={item.name} item={item} active={item.name === district} />)}
-      </svg>
-      <div className="map-levels" aria-label="Geography drill down">
-        <span>Bihar</span><i>→</i><span>{district}</span><i>→</i><span>Urban / Rural</span><i>→</i><span>Local body</span>
-      </div>
-      <p className="map-note">The same cards and charts stay in place while the geography changes. Where an official source stops at district level, CurioLens will say so instead of guessing a local value.</p>
-    </div>
+      <GeoMap url={INDIA_GEOJSON} ariaLabel="Interactive map of Indian states" selected={benchmarkStates} focus={focusState} active={focusState} onSelect={onStateSelect} />
+      <div className="map-legend"><span><i className="legend-dot focus" /> Focus state</span><span><i className="legend-dot benchmark" /> Benchmark state</span><span><i className="legend-dot neutral" /> Other states</span></div>
+    </section>
   );
 }
 
-export function WorldEducationMap() {
+export function BiharDistrictMap({ district, onDistrictSelect, divisionDistricts = [] }) {
   return (
-    <div className="map-card map-card-world">
-      <div className="map-card-heading">
-        <div>
-          <span className="kicker">Way forward</span>
-          <h3>Ideas from comparable countries</h3>
-        </div>
-        <span className="map-chip">World</span>
+    <section className="visual-card bihar-map-card">
+      <div className="visual-card-head">
+        <div><span className="section-tag">Bihar drill-down</span><h3>Districts and local areas</h3></div>
+        <span className="tiny-pill">{district}</span>
       </div>
-      <svg className="curio-map world-map" viewBox="0 0 100 100" role="img" aria-label="World orientation map showing India and selected education benchmark countries">
-        <path className="world-land" d="M6 29 L13 20 L23 18 L31 24 L29 34 L22 39 L18 51 L12 47 L10 38 Z" />
-        <path className="world-land" d="M28 53 L37 54 L41 62 L39 75 L33 87 L28 77 L25 66 Z" />
-        <path className="world-land" d="M45 25 L54 20 L64 22 L69 18 L83 22 L92 31 L88 40 L80 43 L78 52 L69 57 L63 48 L56 45 L53 36 L47 34 Z" />
-        <path className="world-land" d="M77 66 L84 64 L92 70 L90 77 L81 79 L75 73 Z" />
-        {worldMarkers.map((item) => <Marker key={item.name} item={item} />)}
-      </svg>
-      <div className="world-insights">
-        <div><strong>Vietnam</strong><span>Learning and completion</span></div>
-        <div><strong>Bangladesh</strong><span>Girls' participation</span></div>
-        <div><strong>Indonesia</strong><span>Large, diverse system</span></div>
+      <GeoMap url={BIHAR_GEOJSON} ariaLabel="Interactive map of Bihar districts" active={district} divisionDistricts={divisionDistricts} onSelect={onDistrictSelect} />
+      <p className="micro-copy">Click any district to update the selector. The highlighted division helps you move from division → district → urban/rural → local body.</p>
+    </section>
+  );
+}
+
+export function WorldEducationMap({ activeCountry, onCountrySelect, countries }) {
+  return (
+    <section className="visual-card world-map-card">
+      <div className="visual-card-head">
+        <div><span className="section-tag">World context</span><h3>India and comparable countries</h3></div>
+        <span className="tiny-pill">Click a country</span>
       </div>
-      <p className="map-note">Global comparisons should be used as prompts, not copy-paste solutions. CurioLens can use World Bank or UNESCO indicators for country-level context while keeping Bihar comparisons separate from national comparisons.</p>
-    </div>
+      <GeoMap url={WORLD_GEOJSON} ariaLabel="Interactive world map" selected={countries} focus="India" active={activeCountry} onSelect={onCountrySelect} world />
+      <p className="micro-copy">Country comparisons are kept separate from state comparisons. They are used to find ideas worth studying, not to claim that one country can simply copy another.</p>
+    </section>
   );
 }
