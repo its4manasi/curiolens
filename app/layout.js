@@ -1,23 +1,26 @@
 import './styles.css';
+import SiteNav from '../components/SiteNav';
 
 export const metadata = {
   title: { default: 'CurioLens', template: '%s · CurioLens' },
-  description: 'Short, credible stories powered by data, science, geography and curiosity.',
+  description: 'Explore public-interest topics through credible data, visual comparisons and plain-language context — from countries to local communities.',
+  appleWebApp: { capable: true, statusBarStyle: 'default', title: 'CurioLens' },
+};
+
+export const viewport = {
+  width: 'device-width', initialScale: 1, viewportFit: 'cover', themeColor: '#0f8d7b',
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        <header className="site-header-full">
-          <a className="brand-new" href="/"><span className="brand-lens">C</span><b>CurioLens</b></a>
-          <nav className="main-nav-new" aria-label="Main navigation">
-            <a href="/">Home</a><a href="/education/">Education</a><a href="/health/">Health</a><a href="/economy/">Economy</a><a href="/environment/">Environment</a><a href="/local-bodies/">Local Bodies</a><a href="/articles/">Stories</a><a href="/about/">About</a>
-          </nav>
-          <div className="nav-search">⌕</div>
-        </header>
+        <SiteNav />
         <main>{children}</main>
-        <footer className="footer-new"><div><b>CurioLens</b><span>Curiosity, backed by evidence.</span></div><small>Built to make public data easier to understand.</small></footer>
+        <footer className="footer-new">
+          <div><b>CurioLens</b><span>Curiosity, backed by evidence.</span></div>
+          <small>Public-interest data, explained simply. · <a href="/sources/">Verify our sources</a></small>
+        </footer>
       </body>
     </html>
   );

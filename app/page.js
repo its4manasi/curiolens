@@ -1,42 +1,59 @@
 import Link from 'next/link';
 
+const topics = [
+  ['Education','Schools, learning, teachers and higher education.','/education/','01'],
+  ['Health','Access, outcomes, nutrition and public health.','/health/','02'],
+  ['Women','Education, health, work, safety and representation.','/women/','03'],
+  ['Development','Jobs, housing, infrastructure and human development.','/development/','04'],
+  ['Democracy','Participation, representation and local government.','/democracy/','05'],
+  ['Welfare','Food, pensions, housing, scholarships and social protection.','/welfare/','06'],
+  ['Climate','Causes, impacts, exposure and solutions.','/climate/','07'],
+  ['Economy','Income, jobs, prices and opportunity.','/economy/','08'],
+  ['Local Bodies','Move from country to state, district and local area.','/local-bodies/','09'],
+];
+
 export default function HomePage() {
   return (
-    <div className="home-redesign">
-      <section className="home-hero-full">
-        <div className="home-hero-copy">
-          <span className="section-tag">Curious stories · credible facts</span>
-          <h1>Data for a<br/><em>brighter Bihar.</em></h1>
-          <p>Explore what is changing, where the gaps are, and what the evidence suggests — without reading a 100-page report.</p>
-          <div className="hero-actions"><Link className="primary-button" href="/education/">Explore education</Link><Link className="ghost-button" href="/articles/">Read short stories</Link></div>
+    <div className="home-v5">
+      <section className="home-global-hero">
+        <div className="home-global-copy">
+          <span className="section-tag">Public-interest data · explained simply</span>
+          <h1>Understand your world through <em>evidence.</em></h1>
+          <p>Pick a topic, choose a place, and see what is happening, why it matters and what the data suggests could improve.</p>
+          <div className="hero-actions">
+            <Link className="primary-button" href="/education/">Explore a topic</Link>
+            <Link className="ghost-button" href="/local-bodies/">Explore a place</Link>
+          </div>
+          <div className="geo-chooser-demo">
+            <label>Country <select defaultValue="India"><option>India</option><option>Other countries soon</option></select></label>
+            <label>State <select defaultValue="Bihar"><option>Bihar</option><option>Punjab</option><option>Kerala</option><option>Tamil Nadu</option></select></label>
+            <label>District / local body <select defaultValue="All"><option>All</option><option>Choose after state</option></select></label>
+          </div>
         </div>
-        <div className="home-hero-visual">
-          <div className="visual-orbit one"/><div className="visual-orbit two"/><div className="visual-grid"/>
-          <div className="visual-caption"><span>Bihar</span><strong>See your state.<br/>Understand your place.</strong></div>
+        <div className="home-global-visual" aria-hidden="true">
+          <div className="visual-globe"><span>WORLD</span><b>Country → State → District → Local body</b></div>
+          <div className="visual-topic-chip t1">Education</div><div className="visual-topic-chip t2">Climate</div><div className="visual-topic-chip t3">Women</div><div className="visual-topic-chip t4">Democracy</div>
         </div>
-      </section>
-
-      <section className="home-quick-stats">
-        <article><span>Education</span><strong>62%</strong><small>Prototype literacy view</small></article>
-        <article><span>Health</span><strong>Next</strong><small>Public health indicators</small></article>
-        <article><span>Economy</span><strong>Next</strong><small>Jobs, income and growth</small></article>
-        <article><span>Environment</span><strong>Next</strong><small>Air, water and climate</small></article>
       </section>
 
       <section className="home-section-wide">
-        <div className="wide-section-head"><div><span className="section-tag">Explore by theme</span><h2>One place to understand your state.</h2></div><p>Each section uses the same idea: official data, visual comparison, plain-language context and a clear path from state to local area.</p></div>
-        <div className="theme-card-grid">
-          <Link href="/education/" className="theme-card is-live"><i>01</i><strong>Education</strong><span>Schools, learning, teachers and higher education.</span><b>Explore →</b></Link>
-          <Link href="/health/" className="theme-card"><i>02</i><strong>Health</strong><span>Healthcare access, outcomes and local gaps.</span><b>Coming next</b></Link>
-          <Link href="/economy/" className="theme-card"><i>03</i><strong>Economy</strong><span>Jobs, income, prices and opportunity.</span><b>Coming next</b></Link>
-          <Link href="/environment/" className="theme-card"><i>04</i><strong>Environment</strong><span>Air, water, land and climate resilience.</span><b>Coming next</b></Link>
-          <Link href="/local-bodies/" className="theme-card"><i>05</i><strong>Local bodies</strong><span>Move from state to district, urban and rural areas.</span><b>Explore structure</b></Link>
+        <div className="wide-section-head">
+          <div><span className="section-tag">Explore by topic</span><h2>Start with a question that matters.</h2></div>
+          <p>Every section follows the same pattern: what is happening, why it is happening, who is affected, and what could help.</p>
+        </div>
+        <div className="theme-card-grid v5-grid">
+          {topics.map(([name,desc,href,index]) => <Link key={href} href={href} className="theme-card"><i>{index}</i><strong>{name}</strong><span>{desc}</span><b>Explore →</b></Link>)}
         </div>
       </section>
 
-      <section className="home-feature-band">
-        <div><span className="section-tag light">Live section</span><h2>Bihar education,<br/>from state to local area.</h2><p>Compare Bihar with benchmark states, click real map boundaries, move through all nine divisions and 38 districts, and use world comparisons only where they add useful context.</p><Link className="light-button" href="/education/">Open education explorer →</Link></div>
-        <div className="feature-mini-board"><div><span>State</span><strong>Bihar</strong></div><div><span>Division</span><strong>9</strong></div><div><span>Districts</span><strong>38</strong></div><div><span>View</span><strong>Urban + Rural</strong></div></div>
+      <section className="credibility-strip-v5">
+        <div><span className="section-tag">Built to be checked</span><h2>Simple enough to understand. Easy enough to verify.</h2></div>
+        <div><p>CurioLens explains a number in plain words first, adds a useful comparison, then puts the official source one tap away for anyone who wants to check it.</p><Link className="ghost-button" href="/sources/">View credible data sources →</Link></div>
+      </section>
+
+      <section className="curiolens-method">
+        <div><span className="section-tag light">The CurioLens method</span><h2>Four questions on every topic.</h2></div>
+        <div className="method-steps"><article><b>1</b><strong>What is happening?</strong><span>Show the trend and current position.</span></article><article><b>2</b><strong>Why?</strong><span>Explore contributors without oversimplifying cause.</span></article><article><b>3</b><strong>Who is affected?</strong><span>Bring geography, gender and inequality into view.</span></article><article><b>4</b><strong>What could help?</strong><span>Compare evidence from stronger performers and global examples.</span></article></div>
       </section>
     </div>
   );
