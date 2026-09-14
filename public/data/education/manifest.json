@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "updated": "2026-09-14",
+  "policy": {
+    "selection": "latest-available-per-metric",
+    "fallback": "exact geography -> previous official release -> state context -> unavailable",
+    "note": "When a new official release is published, add its dataset entry and data file. The resolver automatically selects the newest available value for each metric without changing API or page code."
+  },
+  "datasets": [
+    {
+      "id": "udise-state-2024-25",
+      "source": "UDISE+",
+      "period": "2024-25",
+      "geographyLevel": "state",
+      "metricKeys": ["schools", "students", "teachers", "ptr", "avgTeachersPerSchool", "avgStudentsPerSchool"],
+      "sourceUrl": "https://dashboard.udiseplus.gov.in/report-new-v.11-demo2025/static/media/UDISE%2B2024_25_Booklet_existing.118ba29d4773e6372f72.pdf",
+      "dataUrl": "/data/education/udise-state-2024-25.json"
+    },
+    {
+      "id": "udise-state-2023-24",
+      "source": "UDISE+",
+      "period": "2023-24",
+      "geographyLevel": "state",
+      "metricKeys": ["schools", "students", "teachers", "ptr", "avgTeachersPerSchool", "avgStudentsPerSchool"],
+      "sourceUrl": "https://www.education.gov.in/sites/upload_files/mhrd/files/statistics-new/udise_report_nep_23_24.pdf",
+      "dataUrl": "/data/education/udise-state-2023-24.json"
+    }
+  ]
+}

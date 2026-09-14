@@ -1,0 +1,402 @@
+{
+  "dataset": "UDISE+ State Education 2023-24",
+  "geographyLevel": "state",
+  "records": [
+    {
+      "state": "Andaman and Nicobar Islands",
+      "metrics": {
+        "schools": 412,
+        "students": 72119,
+        "teachers": 5750,
+        "ptr": 13,
+        "avgTeachersPerSchool": 14,
+        "avgStudentsPerSchool": 175
+      }
+    },
+    {
+      "state": "Andhra Pradesh",
+      "metrics": {
+        "schools": 61373,
+        "students": 8741885,
+        "teachers": 338293,
+        "ptr": 26,
+        "avgTeachersPerSchool": 6,
+        "avgStudentsPerSchool": 142
+      }
+    },
+    {
+      "state": "Arunachal Pradesh",
+      "metrics": {
+        "schools": 3490,
+        "students": 323717,
+        "teachers": 24700,
+        "ptr": 13,
+        "avgTeachersPerSchool": 7,
+        "avgStudentsPerSchool": 93
+      }
+    },
+    {
+      "state": "Assam",
+      "metrics": {
+        "schools": 56630,
+        "students": 6922533,
+        "teachers": 342199,
+        "ptr": 20,
+        "avgTeachersPerSchool": 6,
+        "avgStudentsPerSchool": 122
+      }
+    },
+    {
+      "state": "Bihar",
+      "metrics": {
+        "schools": 94686,
+        "students": 21348149,
+        "teachers": 657063,
+        "ptr": 32,
+        "avgTeachersPerSchool": 7,
+        "avgStudentsPerSchool": 225
+      }
+    },
+    {
+      "state": "Chandigarh",
+      "metrics": {
+        "schools": 230,
+        "students": 265706,
+        "teachers": 10237,
+        "ptr": 26,
+        "avgTeachersPerSchool": 45,
+        "avgStudentsPerSchool": 1155
+      }
+    },
+    {
+      "state": "Chhattisgarh",
+      "metrics": {
+        "schools": 56615,
+        "students": 5776548,
+        "teachers": 278798,
+        "ptr": 21,
+        "avgTeachersPerSchool": 5,
+        "avgStudentsPerSchool": 102
+      }
+    },
+    {
+      "state": "Dadra and Nagar Haveli and Daman and Diu",
+      "metrics": {
+        "schools": 432,
+        "students": 141282,
+        "teachers": 4995,
+        "ptr": 28,
+        "avgTeachersPerSchool": 12,
+        "avgStudentsPerSchool": 327
+      }
+    },
+    {
+      "state": "Delhi",
+      "metrics": {
+        "schools": 5497,
+        "students": 4506578,
+        "teachers": 160479,
+        "ptr": 28,
+        "avgTeachersPerSchool": 29,
+        "avgStudentsPerSchool": 820
+      }
+    },
+    {
+      "state": "Goa",
+      "metrics": {
+        "schools": 1487,
+        "students": 304735,
+        "teachers": 14594,
+        "ptr": 21,
+        "avgTeachersPerSchool": 10,
+        "avgStudentsPerSchool": 205
+      }
+    },
+    {
+      "state": "Gujarat",
+      "metrics": {
+        "schools": 53626,
+        "students": 11496709,
+        "teachers": 394053,
+        "ptr": 29,
+        "avgTeachersPerSchool": 7,
+        "avgStudentsPerSchool": 214
+      }
+    },
+    {
+      "state": "Haryana",
+      "metrics": {
+        "schools": 23517,
+        "students": 5599742,
+        "teachers": 250909,
+        "ptr": 22,
+        "avgTeachersPerSchool": 11,
+        "avgStudentsPerSchool": 238
+      }
+    },
+    {
+      "state": "Himachal Pradesh",
+      "metrics": {
+        "schools": 17826,
+        "students": 1426412,
+        "teachers": 101131,
+        "ptr": 14,
+        "avgTeachersPerSchool": 6,
+        "avgStudentsPerSchool": 80
+      }
+    },
+    {
+      "state": "Jammu and Kashmir",
+      "metrics": {
+        "schools": 24296,
+        "students": 2629949,
+        "teachers": 167046,
+        "ptr": 16,
+        "avgTeachersPerSchool": 7,
+        "avgStudentsPerSchool": 108
+      }
+    },
+    {
+      "state": "Jharkhand",
+      "metrics": {
+        "schools": 44475,
+        "students": 7143255,
+        "teachers": 206591,
+        "ptr": 35,
+        "avgTeachersPerSchool": 5,
+        "avgStudentsPerSchool": 161
+      }
+    },
+    {
+      "state": "Karnataka",
+      "metrics": {
+        "schools": 75869,
+        "students": 11926303,
+        "teachers": 433942,
+        "ptr": 27,
+        "avgTeachersPerSchool": 6,
+        "avgStudentsPerSchool": 157
+      }
+    },
+    {
+      "state": "Kerala",
+      "metrics": {
+        "schools": 15864,
+        "students": 6281704,
+        "teachers": 291096,
+        "ptr": 22,
+        "avgTeachersPerSchool": 18,
+        "avgStudentsPerSchool": 396
+      }
+    },
+    {
+      "state": "Ladakh",
+      "metrics": {
+        "schools": 995,
+        "students": 56642,
+        "teachers": 6432,
+        "ptr": 9,
+        "avgTeachersPerSchool": 6,
+        "avgStudentsPerSchool": 57
+      }
+    },
+    {
+      "state": "Lakshadweep",
+      "metrics": {
+        "schools": 37,
+        "students": 12591,
+        "teachers": 911,
+        "ptr": 14,
+        "avgTeachersPerSchool": 25,
+        "avgStudentsPerSchool": 340
+      }
+    },
+    {
+      "state": "Madhya Pradesh",
+      "metrics": {
+        "schools": 123412,
+        "students": 15361543,
+        "teachers": 639525,
+        "ptr": 24,
+        "avgTeachersPerSchool": 5,
+        "avgStudentsPerSchool": 124
+      }
+    },
+    {
+      "state": "Maharashtra",
+      "metrics": {
+        "schools": 108237,
+        "students": 21375970,
+        "teachers": 738114,
+        "ptr": 29,
+        "avgTeachersPerSchool": 7,
+        "avgStudentsPerSchool": 197
+      }
+    },
+    {
+      "state": "Manipur",
+      "metrics": {
+        "schools": 4646,
+        "students": 647434,
+        "teachers": 40921,
+        "ptr": 16,
+        "avgTeachersPerSchool": 9,
+        "avgStudentsPerSchool": 139
+      }
+    },
+    {
+      "state": "Meghalaya",
+      "metrics": {
+        "schools": 14601,
+        "students": 1052884,
+        "teachers": 55726,
+        "ptr": 19,
+        "avgTeachersPerSchool": 4,
+        "avgStudentsPerSchool": 72
+      }
+    },
+    {
+      "state": "Mizoram",
+      "metrics": {
+        "schools": 3941,
+        "students": 293763,
+        "teachers": 23013,
+        "ptr": 13,
+        "avgTeachersPerSchool": 6,
+        "avgStudentsPerSchool": 75
+      }
+    },
+    {
+      "state": "Nagaland",
+      "metrics": {
+        "schools": 2725,
+        "students": 412975,
+        "teachers": 32602,
+        "ptr": 13,
+        "avgTeachersPerSchool": 12,
+        "avgStudentsPerSchool": 152
+      }
+    },
+    {
+      "state": "Odisha",
+      "metrics": {
+        "schools": 61693,
+        "students": 7756910,
+        "teachers": 335496,
+        "ptr": 23,
+        "avgTeachersPerSchool": 5,
+        "avgStudentsPerSchool": 126
+      }
+    },
+    {
+      "state": "Puducherry",
+      "metrics": {
+        "schools": 735,
+        "students": 244828,
+        "teachers": 13202,
+        "ptr": 19,
+        "avgTeachersPerSchool": 18,
+        "avgStudentsPerSchool": 333
+      }
+    },
+    {
+      "state": "Punjab",
+      "metrics": {
+        "schools": 27404,
+        "students": 5988681,
+        "teachers": 273092,
+        "ptr": 22,
+        "avgTeachersPerSchool": 10,
+        "avgStudentsPerSchool": 219
+      }
+    },
+    {
+      "state": "Rajasthan",
+      "metrics": {
+        "schools": 107757,
+        "students": 16786065,
+        "teachers": 775745,
+        "ptr": 22,
+        "avgTeachersPerSchool": 7,
+        "avgStudentsPerSchool": 156
+      }
+    },
+    {
+      "state": "Sikkim",
+      "metrics": {
+        "schools": 1254,
+        "students": 121395,
+        "teachers": 15489,
+        "ptr": 8,
+        "avgTeachersPerSchool": 12,
+        "avgStudentsPerSchool": 97
+      }
+    },
+    {
+      "state": "Tamil Nadu",
+      "metrics": {
+        "schools": 58722,
+        "students": 12993050,
+        "teachers": 550558,
+        "ptr": 24,
+        "avgTeachersPerSchool": 9,
+        "avgStudentsPerSchool": 221
+      }
+    },
+    {
+      "state": "Telangana",
+      "metrics": {
+        "schools": 42901,
+        "students": 7293644,
+        "teachers": 341460,
+        "ptr": 21,
+        "avgTeachersPerSchool": 8,
+        "avgStudentsPerSchool": 170
+      }
+    },
+    {
+      "state": "Tripura",
+      "metrics": {
+        "schools": 4923,
+        "students": 689408,
+        "teachers": 37661,
+        "ptr": 18,
+        "avgTeachersPerSchool": 8,
+        "avgStudentsPerSchool": 140
+      }
+    },
+    {
+      "state": "Uttar Pradesh",
+      "metrics": {
+        "schools": 255087,
+        "students": 41662794,
+        "teachers": 1538479,
+        "ptr": 27,
+        "avgTeachersPerSchool": 6,
+        "avgStudentsPerSchool": 163
+      }
+    },
+    {
+      "state": "Uttarakhand",
+      "metrics": {
+        "schools": 22551,
+        "students": 2372400,
+        "teachers": 130741,
+        "ptr": 18,
+        "avgTeachersPerSchool": 6,
+        "avgStudentsPerSchool": 105
+      }
+    },
+    {
+      "state": "West Bengal",
+      "metrics": {
+        "schools": 93945,
+        "students": 18015525,
+        "teachers": 576557,
+        "ptr": 31,
+        "avgTeachersPerSchool": 6,
+        "avgStudentsPerSchool": 192
+      }
+    }
+  ]
+}
