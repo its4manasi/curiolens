@@ -68,3 +68,5 @@ Cloudflare will give you a temporary `*.pages.dev` address. Every push to your p
 ## Long-term data approach
 
 Keep articles separate from external data. Public APIs that need no secret key can be fetched directly. For APIs that need API keys, rate limiting or centralized caching, add a Cloudflare Worker as a data gateway later rather than exposing secrets in the browser.
+
+Education data integration added.
