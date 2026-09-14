@@ -1,105 +1,137 @@
-const UDISE_2023_24 = {
-  'Andaman and Nicobar Islands': { schools: 412, students: 72119, teachers: 5750, ptr: 13, avgTeachersPerSchool: 14, avgStudentsPerSchool: 175 },
-  'Andhra Pradesh': { schools: 61373, students: 8741885, teachers: 338293, ptr: 26, avgTeachersPerSchool: 6, avgStudentsPerSchool: 142 },
-  'Arunachal Pradesh': { schools: 3490, students: 323717, teachers: 24700, ptr: 13, avgTeachersPerSchool: 7, avgStudentsPerSchool: 93 },
-  'Assam': { schools: 56630, students: 6922533, teachers: 342199, ptr: 20, avgTeachersPerSchool: 6, avgStudentsPerSchool: 122 },
-  'Bihar': { schools: 94686, students: 21348149, teachers: 657063, ptr: 32, avgTeachersPerSchool: 7, avgStudentsPerSchool: 225 },
-  'Chandigarh': { schools: 230, students: 265706, teachers: 10237, ptr: 26, avgTeachersPerSchool: 45, avgStudentsPerSchool: 1155 },
-  'Chhattisgarh': { schools: 56615, students: 5776548, teachers: 278798, ptr: 21, avgTeachersPerSchool: 5, avgStudentsPerSchool: 102 },
-  'Dadra and Nagar Haveli and Daman and Diu': { schools: 432, students: 141282, teachers: 4995, ptr: 28, avgTeachersPerSchool: 12, avgStudentsPerSchool: 327 },
-  'Delhi': { schools: 5497, students: 4506578, teachers: 160479, ptr: 28, avgTeachersPerSchool: 29, avgStudentsPerSchool: 820 },
-  'Goa': { schools: 1487, students: 304735, teachers: 14594, ptr: 21, avgTeachersPerSchool: 10, avgStudentsPerSchool: 205 },
-  'Gujarat': { schools: 53626, students: 11496709, teachers: 394053, ptr: 29, avgTeachersPerSchool: 7, avgStudentsPerSchool: 214 },
-  'Haryana': { schools: 23517, students: 5599742, teachers: 250909, ptr: 22, avgTeachersPerSchool: 11, avgStudentsPerSchool: 238 },
-  'Himachal Pradesh': { schools: 17826, students: 1426412, teachers: 101131, ptr: 14, avgTeachersPerSchool: 6, avgStudentsPerSchool: 80 },
-  'Jammu and Kashmir': { schools: 24296, students: 2629949, teachers: 167046, ptr: 16, avgTeachersPerSchool: 7, avgStudentsPerSchool: 108 },
-  'Jharkhand': { schools: 44475, students: 7143255, teachers: 206591, ptr: 35, avgTeachersPerSchool: 5, avgStudentsPerSchool: 161 },
-  'Karnataka': { schools: 75869, students: 11926303, teachers: 433942, ptr: 27, avgTeachersPerSchool: 6, avgStudentsPerSchool: 157 },
-  'Kerala': { schools: 15864, students: 6281704, teachers: 291096, ptr: 22, avgTeachersPerSchool: 18, avgStudentsPerSchool: 396 },
-  'Ladakh': { schools: 995, students: 56642, teachers: 6432, ptr: 9, avgTeachersPerSchool: 6, avgStudentsPerSchool: 57 },
-  'Lakshadweep': { schools: 37, students: 12591, teachers: 911, ptr: 14, avgTeachersPerSchool: 25, avgStudentsPerSchool: 340 },
-  'Madhya Pradesh': { schools: 123412, students: 15361543, teachers: 639525, ptr: 24, avgTeachersPerSchool: 5, avgStudentsPerSchool: 124 },
-  'Maharashtra': { schools: 108237, students: 21375970, teachers: 738114, ptr: 29, avgTeachersPerSchool: 7, avgStudentsPerSchool: 197 },
-  'Manipur': { schools: 4646, students: 647434, teachers: 40921, ptr: 16, avgTeachersPerSchool: 9, avgStudentsPerSchool: 139 },
-  'Meghalaya': { schools: 14601, students: 1052884, teachers: 55726, ptr: 19, avgTeachersPerSchool: 4, avgStudentsPerSchool: 72 },
-  'Mizoram': { schools: 3941, students: 293763, teachers: 23013, ptr: 13, avgTeachersPerSchool: 6, avgStudentsPerSchool: 75 },
-  'Nagaland': { schools: 2725, students: 412975, teachers: 32602, ptr: 13, avgTeachersPerSchool: 12, avgStudentsPerSchool: 152 },
-  'Odisha': { schools: 61693, students: 7756910, teachers: 335496, ptr: 23, avgTeachersPerSchool: 5, avgStudentsPerSchool: 126 },
-  'Puducherry': { schools: 735, students: 244828, teachers: 13202, ptr: 19, avgTeachersPerSchool: 18, avgStudentsPerSchool: 333 },
-  'Punjab': { schools: 27404, students: 5988681, teachers: 273092, ptr: 22, avgTeachersPerSchool: 10, avgStudentsPerSchool: 219 },
-  'Rajasthan': { schools: 107757, students: 16786065, teachers: 775745, ptr: 22, avgTeachersPerSchool: 7, avgStudentsPerSchool: 156 },
-  'Sikkim': { schools: 1254, students: 121395, teachers: 15489, ptr: 8, avgTeachersPerSchool: 12, avgStudentsPerSchool: 97 },
-  'Tamil Nadu': { schools: 58722, students: 12993050, teachers: 550558, ptr: 24, avgTeachersPerSchool: 9, avgStudentsPerSchool: 221 },
-  'Telangana': { schools: 42901, students: 7293644, teachers: 341460, ptr: 21, avgTeachersPerSchool: 8, avgStudentsPerSchool: 170 },
-  'Tripura': { schools: 4923, students: 689408, teachers: 37661, ptr: 18, avgTeachersPerSchool: 8, avgStudentsPerSchool: 140 },
-  'Uttar Pradesh': { schools: 255087, students: 41662794, teachers: 1538479, ptr: 27, avgTeachersPerSchool: 6, avgStudentsPerSchool: 163 },
-  'Uttarakhand': { schools: 22551, students: 2372400, teachers: 130741, ptr: 18, avgTeachersPerSchool: 6, avgStudentsPerSchool: 105 },
-  'West Bengal': { schools: 93945, students: 18015525, teachers: 576557, ptr: 31, avgTeachersPerSchool: 6, avgStudentsPerSchool: 192 },
-};
+const DEFAULT_METRIC_KEYS = [
+  'population', 'schools', 'students', 'teachers', 'ptr', 'literacy', 'girls',
+  'secondary', 'higherEd', 'avgTeachersPerSchool', 'avgStudentsPerSchool'
+];
 
-const normalize = (value = '') => String(value).trim().toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]/g, '');
-const numeric = (value) => {
-  if (typeof value === 'number') return Number.isFinite(value) ? value : undefined;
-  if (value === null || value === undefined) return undefined;
-  const match = String(value).replace(/,/g, '').match(/-?\d+(?:\.\d+)?/);
-  if (!match) return undefined;
-  const parsed = Number(match[0]);
-  return Number.isFinite(parsed) ? parsed : undefined;
-};
-const fieldValue = (record, candidates) => {
-  const entries = Object.entries(record || {});
-  for (const candidate of candidates) {
-    const key = entries.find(([name]) => candidate.test(normalize(name)))?.[0];
-    if (key) return record[key];
+const normalize = (value = '') => String(value)
+  .trim()
+  .toLowerCase()
+  .replace(/&/g, 'and')
+  .replace(/[^a-z0-9]/g, '');
+
+const isPresent = (value) => value !== undefined && value !== null && value !== '';
+
+function samePlace(a, b) {
+  return normalize(a) === normalize(b);
+}
+
+function releaseRank(dataset) {
+  const date = Date.parse(dataset.releaseDate || '');
+  if (Number.isFinite(date)) return date;
+  const years = String(dataset.period || '').match(/\d{4}/g) || [];
+  return years.length ? Number(years[years.length - 1]) * 10000 : 0;
+}
+
+function toAbsoluteUrl(value, requestUrl, manifestUrl) {
+  if (!value) return null;
+  try {
+    if (/^https?:\/\//i.test(value)) return value;
+    const base = manifestUrl || requestUrl.origin;
+    return new URL(value, base).toString();
+  } catch {
+    return null;
   }
-  return undefined;
-};
-const textValue = (record, candidates) => {
-  const value = fieldValue(record, candidates);
-  return value === undefined || value === null ? '' : String(value).trim();
-};
-
-function normaliseRecord(record) {
-  if (!record || typeof record !== 'object') return {};
-  const schools = numeric(fieldValue(record, [/totalnumberofschools/, /numberofschools/, /totalschools/, /^schools$/]));
-  const students = numeric(fieldValue(record, [/totalnumberofenrolments/, /enrolments?$/, /totalenrol/, /students?$/]));
-  const teachers = numeric(fieldValue(record, [/totalnumberofteachers/, /numberofteachers/, /totalteachers/, /^teachers$/]));
-  const ptr = numeric(fieldValue(record, [/pupilteacherratio/, /^ptr$/]));
-  const girls = numeric(fieldValue(record, [/girl.*share/, /female.*enrol/, /girls/ ]));
-  const literacy = numeric(fieldValue(record, [/literacyrate/, /^literacy$/]));
-  const secondary = numeric(fieldValue(record, [/secondarycompletion/, /completionsecondary/]));
-  const higherEd = numeric(fieldValue(record, [/higher.*ger/, /grossenrolmentratio/]));
-  return {
-    ...(schools !== undefined ? { schools } : {}),
-    ...(students !== undefined ? { students } : {}),
-    ...(teachers !== undefined ? { teachers } : {}),
-    ...(ptr !== undefined ? { ptr } : {}),
-    ...(girls !== undefined ? { girls } : {}),
-    ...(literacy !== undefined ? { literacy } : {}),
-    ...(secondary !== undefined ? { secondary } : {}),
-    ...(higherEd !== undefined ? { higherEd } : {}),
-  };
 }
 
-function samePlace(value, target) {
-  return normalize(value) === normalize(target);
-}
-
-function filterRecords(records, state, district) {
-  return (records || []).filter((record) => {
-    const stateValue = textValue(record, [/^statename$/, /^state$/, /^stname$/, /^statet?ut$/, /^india?state?ut$/]);
-    const districtValue = textValue(record, [/^districtname$/, /^district$/, /^dtname$/, /^districtnm$/]);
-    const stateMatch = !state || !stateValue || samePlace(stateValue, state);
-    const districtMatch = !district || !districtValue || samePlace(districtValue, district);
-    return stateMatch && districtMatch;
+async function fetchJson(url) {
+  const response = await fetch(url, {
+    headers: { Accept: 'application/json' },
+    cf: { cacheEverything: true, cacheTtl: 3600 }
   });
+  if (!response.ok) throw new Error(`Data fetch failed: ${response.status}`);
+  return response.json();
 }
 
-async function fetchKnownDistrictData(context, state, district) {
-  // v13.6 deliberately removes the single DATA_GOV_EDUCATION_RESOURCE_ID dependency.
-  // District metrics will be added source-by-source as stable official machine-readable
-  // resources are verified. Until then we return no fabricated district value.
-  return null;
+async function loadManifest(context, requestUrl) {
+  const configured = context.env?.CURIOLENS_EDUCATION_MANIFEST_URL;
+  const manifestUrl = configured
+    ? new URL(configured, requestUrl.origin).toString()
+    : new URL('/data/education/manifest.json', requestUrl.origin).toString();
+  const manifest = await fetchJson(manifestUrl);
+  return { manifest, manifestUrl };
+}
+
+async function loadDatasets(manifest, manifestUrl, requestUrl) {
+  const definitions = [...(manifest.datasets || [])].sort((a, b) => releaseRank(b) - releaseRank(a));
+  const loaded = await Promise.all(definitions.map(async (definition) => {
+    try {
+      if (Array.isArray(definition.records)) return { definition, records: definition.records };
+      const dataUrl = toAbsoluteUrl(definition.dataUrl, requestUrl, manifestUrl);
+      if (!dataUrl) return { definition, records: [] };
+      const payload = await fetchJson(dataUrl);
+      return { definition, records: Array.isArray(payload) ? payload : (payload.records || []) };
+    } catch {
+      return { definition, records: [] };
+    }
+  }));
+  return loaded;
+}
+
+function recordMatches(record, level, state, division, district) {
+  if (!samePlace(record.state, state)) return false;
+  if (level === 'state') return true;
+  if (level === 'division') return Boolean(record.division && samePlace(record.division, division));
+  if (level === 'district') return Boolean(record.district && samePlace(record.district, district));
+  return false;
+}
+
+function candidateMetrics(datasets, level, state, division, district) {
+  const result = {};
+  const meta = {};
+
+  for (const { definition, records } of datasets) {
+    if (definition.geographyLevel !== level) continue;
+    const record = records.find((item) => recordMatches(item, level, state, division, district));
+    if (!record) continue;
+    const values = record.metrics || record;
+    const metricKeys = definition.metricKeys?.length ? definition.metricKeys : DEFAULT_METRIC_KEYS;
+
+    for (const key of metricKeys) {
+      if (isPresent(result[key]) || !isPresent(values[key])) continue;
+      result[key] = values[key];
+      meta[key] = {
+        datasetId: definition.id,
+        source: definition.source,
+        sourceUrl: definition.sourceUrl,
+        period: definition.period,
+        releaseDate: definition.releaseDate || null,
+        geographyLevel: level,
+        latestAvailable: true,
+        isFallback: false
+      };
+    }
+  }
+
+  return { metrics: result, meta };
+}
+
+function mergeWithStateFallback(exact, stateLevel, requestedLevel) {
+  const metrics = { ...exact.metrics };
+  const metricMeta = { ...exact.meta };
+
+  for (const [key, value] of Object.entries(stateLevel.metrics)) {
+    if (isPresent(metrics[key])) continue;
+    metrics[key] = value;
+    metricMeta[key] = {
+      ...stateLevel.meta[key],
+      requestedGeographyLevel: requestedLevel,
+      isFallback: requestedLevel !== 'state',
+      fallbackReason: requestedLevel === 'state' ? null : `${requestedLevel} value unavailable; using latest state context`
+    };
+  }
+
+  return { metrics, metricMeta };
+}
+
+function messageFor(level, metricMeta) {
+  const values = Object.values(metricMeta || {});
+  if (!values.length) return 'No source-backed metric is available for this selection yet.';
+  if (level === 'state') return 'Latest available official value is selected independently for each metric.';
+  const exactCount = values.filter((item) => item.geographyLevel === level && !item.isFallback).length;
+  const fallbackCount = values.filter((item) => item.isFallback).length;
+  if (exactCount && fallbackCount) return `Using latest available ${level} values where connected; missing metrics use clearly labelled state context.`;
+  if (exactCount) return `Latest available official ${level} values loaded for this selection.`;
+  return `${level[0].toUpperCase() + level.slice(1)} selected. District/division-specific values are not connected for these metrics yet, so the latest state figures are shown only as labelled context.`;
 }
 
 export async function onRequestGet(context) {
@@ -107,37 +139,51 @@ export async function onRequestGet(context) {
   const state = requestUrl.searchParams.get('state') || 'Bihar';
   const division = requestUrl.searchParams.get('division') || '';
   const district = requestUrl.searchParams.get('district') || '';
-  const stateMetrics = UDISE_2023_24[state] || {};
-  const live = district && district !== 'All districts' ? await fetchKnownDistrictData(context, state, district) : null;
-
   const districtRequested = Boolean(district && district !== 'All districts');
-  const divisionRequested = Boolean(division && division !== 'All divisions');
-  const finerGeographyRequested = districtRequested || divisionRequested;
-  const metrics = districtRequested ? (live?.metrics || {}) : (divisionRequested ? {} : { ...stateMetrics, ...(live?.metrics || {}) });
+  const divisionRequested = Boolean(!districtRequested && division && division !== 'All divisions');
+  const requestedLevel = districtRequested ? 'district' : (divisionRequested ? 'division' : 'state');
 
-  return Response.json({
-    state,
-    division: divisionRequested ? division : null,
-    district: districtRequested ? district : null,
-    geographyLevel: districtRequested ? (live ? 'district' : 'district-unavailable') : (divisionRequested ? 'division-unavailable' : 'state'),
-    metrics,
-    stateFallback: finerGeographyRequested && !live ? stateMetrics : undefined,
-    sources: {
-      stateEducation: {
-        name: 'UDISE+ 2023-24',
-        url: 'https://www.education.gov.in/sites/upload_files/mhrd/files/statistics-new/udise_report_nep_23_24.pdf',
-        note: 'Table 2.2: State-wise schools, enrolments, teachers and pupil-teacher ratio.',
-      },
-      districtEducation: live ? {
-        name: 'Verified district education source',
-        url: 'https://www.data.gov.in/dataset-group-name/Unified%20district%20information%20system%20for%20education',
-        note: 'District values are returned only from a verified source mapping for that metric.',
-      } : null,
-    },
-    message: districtRequested && !live
-      ? 'District selected. A district-specific value is not yet connected for this metric, so the response also includes state-level UDISE+ context.'
-      : (divisionRequested ? 'Division selected. Division-level education metrics are not connected yet, so the response includes clearly labelled state-level UDISE+ context.' : undefined),
-  }, {
-    headers: { 'Cache-Control': 'public, max-age=300, s-maxage=21600' },
-  });
+  try {
+    const { manifest, manifestUrl } = await loadManifest(context, requestUrl);
+    const datasets = await loadDatasets(manifest, manifestUrl, requestUrl);
+    const stateLevel = candidateMetrics(datasets, 'state', state, '', '');
+    const exact = requestedLevel === 'state'
+      ? stateLevel
+      : candidateMetrics(datasets, requestedLevel, state, division, district);
+    const resolved = mergeWithStateFallback(exact, stateLevel, requestedLevel);
+
+    const hasExact = Object.values(resolved.metricMeta).some((item) => item.geographyLevel === requestedLevel && !item.isFallback);
+    const hasFallback = Object.values(resolved.metricMeta).some((item) => item.isFallback);
+
+    return Response.json({
+      state,
+      division: divisionRequested ? division : null,
+      district: districtRequested ? district : null,
+      requestedGeographyLevel: requestedLevel,
+      geographyLevel: requestedLevel === 'state'
+        ? 'state'
+        : (hasExact ? (hasFallback ? `${requestedLevel}-partial` : requestedLevel) : `${requestedLevel}-state-context`),
+      metrics: resolved.metrics,
+      metricMeta: resolved.metricMeta,
+      dataPolicy: manifest.policy || null,
+      manifestUpdated: manifest.updated || null,
+      message: messageFor(requestedLevel, resolved.metricMeta)
+    }, {
+      headers: {
+        'Cache-Control': 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400'
+      }
+    });
+  } catch (error) {
+    return Response.json({
+      state,
+      division: divisionRequested ? division : null,
+      district: districtRequested ? district : null,
+      requestedGeographyLevel: requestedLevel,
+      geographyLevel: 'unavailable',
+      metrics: {},
+      metricMeta: {},
+      message: 'The education data manifest could not be loaded. No value was substituted or guessed.',
+      error: error instanceof Error ? error.message : 'Unknown data error'
+    }, { status: 503 });
+  }
 }
