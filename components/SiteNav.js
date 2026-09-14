@@ -17,6 +17,23 @@ const topics = [
   ['space','Space & Technology','/space-tech/'],
 ];
 
+
+const SEARCH_ITEMS = [
+  { label: 'Education', type: 'Topic', href: '/education/', keywords: 'education school schools teacher teachers literacy students learning college university udise aishe' },
+  { label: 'Health', type: 'Topic', href: '/health/', keywords: 'health healthcare mortality life expectancy maternal infant child tb tuberculosis disease uhc universal coverage' },
+  { label: 'Women & Society', type: 'Topic', href: '/women/', keywords: 'women woman gender female girls safety labour work earnings parliament representation digital finance' },
+  { label: 'Economy', type: 'Topic', href: '/economy/', keywords: 'economy gdp jobs employment unemployment income earnings fiscal debt state finances plfs hces' },
+  { label: 'Development', type: 'Topic', href: '/development/', keywords: 'development sdg poverty inequality hunger hdi happiness niti index' },
+  { label: 'Democracy & Governance', type: 'Topic', href: '/democracy/', keywords: 'democracy governance corruption cpi press freedom peace election voice accountability' },
+  { label: 'Climate & Environment', type: 'Topic', href: '/climate/', keywords: 'climate environment co2 carbon emissions warming temperature forest trees biodiversity air quality energy transition renewable' },
+  { label: 'Science', type: 'Topic', href: '/science/', keywords: 'science research discovery medicine experiments' },
+  { label: 'Space & Technology', type: 'Topic', href: '/space-tech/', keywords: 'space technology isro satellite moon mars ai semiconductor tech' },
+  { label: 'Maps', type: 'Explore', href: '/education/#maps', keywords: 'map maps geography state district india' },
+  { label: 'Stories', type: 'Explore', href: '/articles/', keywords: 'stories articles reads explainers' },
+  { label: 'Sources', type: 'Explore', href: '/sources/', keywords: 'sources data evidence official verify methodology' },
+  { label: 'About CurioLens', type: 'Explore', href: '/about/', keywords: 'about contact manasi linkedin email' },
+];
+
 const COUNTRY_KEY = 'curiolens-country';
 const STATE_KEY = 'curiolens-state';
 const DISTRICT_KEY = 'curiolens-district';
@@ -126,9 +143,12 @@ export default function SiteNav() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [topicOpen, setTopicOpen] = useState(false);
   const [placeOpen, setPlaceOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [country, setCountry] = useState(countryByCode('IND'));
   const topicTimer = useRef(null);
   const placeTimer = useRef(null);
+  const searchInputRef = useRef(null);
 
   useEffect(() => {
     const stored = readStoredPlace();
@@ -138,6 +158,24 @@ export default function SiteNav() {
     return () => window.removeEventListener('curiolens:country-change', onCountry);
   }, []);
 
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('place') === '1') {
+      setPlaceOpen(true);
+      params.delete('place');
+      const next = `${window.location.pathname}${params.toString() ? `?${params}` : ''}${window.location.hash}`;
+      window.history.replaceState({}, '', next);
+    }
+    if (window.location.hash === '#maps') {
+      window.setTimeout(() => document.getElementById('maps')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (searchOpen) window.setTimeout(() => searchInputRef.current?.focus(), 30);
+  }, [searchOpen]);
+
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
@@ -145,7 +183,7 @@ export default function SiteNav() {
 
   useEffect(() => {
     const onKey = (e) => {
-      if (e.key === 'Escape') { setMobileOpen(false); setTopicOpen(false); setPlaceOpen(false); }
+      if (e.key === 'Escape') { setMobileOpen(false); setTopicOpen(false); setPlaceOpen(false); setSearchOpen(false); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -157,6 +195,35 @@ export default function SiteNav() {
   };
   const keepOpen = (ref, setter) => { clearTimeout(ref.current); setter(true); };
   const closeMobile = () => setMobileOpen(false);
+
+  const normalizedSearch = searchQuery.trim().toLowerCase();
+  const searchResults = useMemo(() => {
+    if (!normalizedSearch) return SEARCH_ITEMS.slice(0, 7);
+    const content = SEARCH_ITEMS.filter((item) => `${item.label} ${item.keywords}`.toLowerCase().includes(normalizedSearch));
+    const countries = COUNTRIES.filter((item) => item.name.toLowerCase().includes(normalizedSearch)).slice(0, 4).map((item) => ({
+      label: item.name,
+      type: 'Country',
+      href: `/?place=1&country=${encodeURIComponent(item.code)}`,
+      keywords: item.name,
+    }));
+    const states = INDIA_STATES.filter((name) => name.toLowerCase().includes(normalizedSearch)).slice(0, 4).map((name) => ({
+      label: name,
+      type: 'State / UT',
+      href: `/?place=1&country=IND&state=${encodeURIComponent(name)}`,
+      keywords: name,
+    }));
+    return [...content, ...countries, ...states].slice(0, 9);
+  }, [normalizedSearch]);
+
+  const goToMaps = (event) => {
+    if (typeof window === 'undefined') return;
+    if (window.location.pathname.startsWith('/education')) {
+      event?.preventDefault?.();
+      window.history.replaceState({}, '', `${window.location.pathname}${window.location.search}#maps`);
+      document.getElementById('maps')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setMobileOpen(false);
+    }
+  };
 
   return <header className="v9-header-wrap">
     <div className="v9-header">
@@ -183,13 +250,27 @@ export default function SiteNav() {
           </div>}
         </div>
         <Link className="v9-nav-link" href="/education/#compare"><UiIcon name="compare" size={16}/><span>Compare</span></Link>
-        <Link className="v9-nav-link" href="/education/#maps"><UiIcon name="map" size={16}/><span>Maps</span></Link>
+        <a className="v9-nav-link" href="/education/#maps" onClick={goToMaps}><UiIcon name="map" size={16}/><span>Maps</span></a>
         <Link className="v9-nav-link" href="/articles/"><UiIcon name="stories" size={16}/><span>Stories</span></Link>
         <Link className="v9-nav-link" href="/sources/"><UiIcon name="sources" size={16}/><span>Sources</span></Link>
       </nav>
 
       <div className="v9-header-actions">
-        <Link className="v9-icon-button" href="/articles/" aria-label="Search and stories"><UiIcon name="search" size={19}/></Link>
+        <div className="v9-search-wrap">
+          <button className="v9-icon-button" type="button" aria-label="Search CurioLens" aria-expanded={searchOpen} onClick={() => { setSearchOpen(v => !v); setPlaceOpen(false); }}><UiIcon name="search" size={19}/></button>
+          {searchOpen && <div className="v9-search-popover">
+            <div className="v9-search-head">
+              <UiIcon name="search" size={18}/>
+              <input ref={searchInputRef} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search topics, data or places…" aria-label="Search CurioLens"/>
+              {searchQuery && <button type="button" onClick={() => setSearchQuery('')} aria-label="Clear search">×</button>}
+            </div>
+            <div className="v9-search-results">
+              {searchResults.length ? searchResults.map((item) => <a key={`${item.type}-${item.label}`} href={item.href} onClick={() => setSearchOpen(false)}>
+                <span><b>{item.label}</b><small>{item.type}</small></span><strong aria-hidden="true">›</strong>
+              </a>) : <div className="v9-search-empty">No match yet. Try education, climate, SDG, Bihar or a country name.</div>}
+            </div>
+          </div>}
+        </div>
         <div className="v9-nav-popover v9-place-popover" onMouseEnter={() => keepOpen(placeTimer,setPlaceOpen)} onMouseLeave={() => delayedClose(placeTimer,setPlaceOpen)}>
           <button className="v9-place-button" type="button" aria-expanded={placeOpen} onClick={() => setPlaceOpen(v => !v)}><UiIcon name="pin" size={17}/><span>{country.name}</span><NavChevron open={placeOpen}/></button>
           {placeOpen && <div onMouseEnter={() => keepOpen(placeTimer,setPlaceOpen)} onMouseLeave={() => delayedClose(placeTimer,setPlaceOpen)}><PlacePicker onApplied={(detail) => { setCountry(countryByCode(detail.countryCode)); setPlaceOpen(false); }}/></div>}
@@ -210,7 +291,7 @@ export default function SiteNav() {
           <Link className="mobile-primary-link" href="/" onClick={closeMobile}><UiIcon name="home" size={20}/> Home</Link>
           <details className="mobile-nested"><summary><span><UiIcon name="topics" size={20}/> Topics</span><NavChevron size={16}/></summary><TopicLinks mobile onNavigate={closeMobile}/></details>
           <Link className="mobile-menu-link" href="/education/#compare" onClick={closeMobile}><UiIcon name="compare" size={20}/> Compare</Link>
-          <Link className="mobile-menu-link" href="/education/#maps" onClick={closeMobile}><UiIcon name="map" size={20}/> Maps</Link>
+          <a className="mobile-menu-link" href="/education/#maps" onClick={goToMaps}><UiIcon name="map" size={20}/> Maps</a>
           <Link className="mobile-menu-link" href="/articles/" onClick={closeMobile}><UiIcon name="stories" size={20}/> Stories</Link>
           <Link className="mobile-menu-link" href="/sources/" onClick={closeMobile}><UiIcon name="sources" size={20}/> Sources</Link>
           <details className="mobile-nested place-mobile-details"><summary><span><UiIcon name="pin" size={20}/> Country & place</span><NavChevron size={16}/></summary><PlacePicker mobile onApplied={(detail) => setCountry(countryByCode(detail.countryCode))}/></details>

@@ -24,35 +24,46 @@ export default function DevelopmentDashboard(){
     return () => window.removeEventListener('curiolens:place-change', onPlace);
   }, []);
   const latest = [
-    ['Gini index', live.gini, (v) => Number(v).toFixed(1)],
-    ['Poverty at lower-middle-income line', live.poverty, (v) => `${Number(v).toFixed(1)}%`],
-    ['Life expectancy', live.lifeExpectancy, (v) => `${Number(v).toFixed(1)} years`],
-    ['Under-5 mortality', live.under5, (v) => `${Number(v).toFixed(1)} / 1,000`],
+    ['Gini index', live.gini, (v) => Number(v).toFixed(1), 'Shows how evenly income or consumption is distributed. Lower values mean a more even distribution.'],
+    ['Poverty at lower-middle-income line', live.poverty, (v) => `${Number(v).toFixed(1)}%`, 'Share of people living below the World Bank lower-middle-income poverty line.'],
+    ['Life expectancy', live.lifeExpectancy, (v) => `${Number(v).toFixed(1)} years`, 'Average years a newborn would be expected to live if current mortality patterns continued.'],
+    ['Under-5 mortality', live.under5, (v) => `${Number(v).toFixed(1)} / 1,000`, 'Deaths before age five for every 1,000 live births. Lower is better.'],
   ].filter(([,m]) => m?.value != null);
+
+  const rankValue = (rankMetric, fallbackRank, fallbackTotal) => {
+    const rank = rankMetric?.value ?? (isIndia ? fallbackRank : null);
+    const total = rankMetric?.outOf ?? (isIndia ? fallbackTotal : null);
+    if (rank == null) return '—';
+    return total ? `${rank} / ${total}` : `#${rank}`;
+  };
 
   const globalMeasures = [
     {
-      label:'Global SDG Index',
-      value: live.globalSdgRank?.value != null ? `#${live.globalSdgRank.value}` : (isIndia ? '#94' : '—'),
-      detail: live.globalSdgRank?.value != null ? `${live.globalSdgRank.period} · ${live.globalSdgRank.outOf ? `of ${live.globalSdgRank.outOf}` : 'latest edition'}${live.globalSdgScore?.value != null ? ` · score ${Number(live.globalSdgScore.value).toFixed(1)}` : ''}` : (isIndia ? 'SDR 2026 · 94 of 169 · score 68.3 · last verified' : 'Latest Sustainable Development Report country result checked live'),
+      label:'Global SDG Index rank',
+      value: rankValue(live.globalSdgRank, 94, 169),
+      detail: live.globalSdgRank?.value != null ? `${live.globalSdgRank.period || 'Latest edition'}${live.globalSdgScore?.value != null ? ` · score ${Number(live.globalSdgScore.value).toFixed(1)}` : ''}` : (isIndia ? '2026 · score 68.3 · last verified' : 'Latest Sustainable Development Report country result checked live'),
+      description:'Compares overall progress across the 17 Sustainable Development Goals. A lower rank is better.',
       source: live.globalSdgRank || {source:'Sustainable Development Report', sourceUrl:'https://dashboards.sdgindex.org/profiles/india/fact-sheet/'},
     },
     {
-      label:'Human Development Index',
-      value: live.hdiRank?.value != null ? `#${live.hdiRank.value}` : (isIndia ? '#130' : '—'),
-      detail: live.hdiRank?.value != null ? `${live.hdiRank.period || 'Latest HDR'}${live.hdiValue?.value != null ? ` · HDI ${Number(live.hdiValue.value).toFixed(3)}` : ''}` : (isIndia ? 'HDR 2025 · 130 of 193 · HDI 0.685 · last verified' : 'Latest UNDP country result checked live'),
+      label:'Human Development Index rank',
+      value: rankValue(live.hdiRank, 130, 193),
+      detail: live.hdiRank?.value != null ? `${live.hdiRank.period || 'Latest HDR'}${live.hdiValue?.value != null ? ` · HDI ${Number(live.hdiValue.value).toFixed(3)}` : ''}` : (isIndia ? 'HDR 2025 · HDI 0.685 · last verified' : 'Latest UNDP country result checked live'),
+      description:'Combines health, education and living standards into one human-development measure.',
       source: live.hdiRank || {source:'UNDP', sourceUrl:'https://hdr.undp.org/data-center/country-insights#/ranks'},
     },
     {
-      label:'World Happiness Report',
-      value: live.happinessRank?.value != null ? `#${live.happinessRank.value}` : (isIndia ? '#116' : '—'),
-      detail: live.happinessRank?.value != null ? `${live.happinessRank.period || 'Latest edition'}${live.happinessScore?.value != null ? ` · life evaluation ${Number(live.happinessScore.value).toFixed(3)}` : ''}` : (isIndia ? '2026 · 116 of 147 · score 4.536 · last verified' : 'Latest World Happiness country result checked live'),
+      label:'World Happiness rank',
+      value: rankValue(live.happinessRank, 116, 147),
+      detail: live.happinessRank?.value != null ? `${live.happinessRank.period || 'Latest edition'}${live.happinessScore?.value != null ? ` · life evaluation ${Number(live.happinessScore.value).toFixed(3)}` : ''}` : (isIndia ? '2026 · life evaluation 4.536 · last verified' : 'Latest World Happiness country result checked live'),
+      description:'Ranks countries using people’s own evaluation of their lives, averaged over recent survey years.',
       source: live.happinessRank || {source:'World Happiness Report', sourceUrl:'https://www.worldhappiness.report/'},
     },
     {
-      label:'Global Hunger Index',
-      value: live.ghiRank?.value != null ? `#${live.ghiRank.value}` : (isIndia ? '#102' : '—'),
-      detail: live.ghiRank?.value != null ? `${live.ghiRank.period || 'Latest edition'} · of ${live.ghiRank.outOf || '—'}${live.ghiScore?.value != null ? ` · score ${live.ghiScore.value}` : ''}` : (isIndia ? '2025 · 102 of 123 · score 25.8 · last verified' : 'Latest Global Hunger Index country result checked live'),
+      label:'Global Hunger Index rank',
+      value: rankValue(live.ghiRank, 102, 123),
+      detail: live.ghiRank?.value != null ? `${live.ghiRank.period || 'Latest edition'}${live.ghiScore?.value != null ? ` · score ${live.ghiScore.value}` : ''}` : (isIndia ? '2025 · score 25.8 · last verified' : 'Latest Global Hunger Index country result checked live'),
+      description:'Combines undernourishment, child wasting, child stunting and child mortality. Lower is better.',
       source: live.ghiRank || {source:'Global Hunger Index', sourceUrl:'https://www.globalhungerindex.org/india.html'},
     },
   ];
@@ -63,9 +74,9 @@ export default function DevelopmentDashboard(){
   const stateNames = stateRows.length ? stateRows.map((x)=>x.state) : ['Bihar'];
 
   return <div className="public-data-dashboard development-data-dashboard">
-    <section className="live-index-section compact-live-section"><div className="live-index-head"><div><span className="section-tag">Latest available {countryName} series</span><h2>Development indicators update on different schedules.</h2><p>The API asks each live source for its newest non-null {countryName} observation rather than requesting a fixed year.</p></div><span className={`live-status ${liveStatus}`}>{liveStatus === 'ready' ? 'Latest observations checked' : liveStatus === 'loading' ? 'Checking latest data…' : 'Using verified fallback where needed'}</span></div>{latest.length > 0 && <div className="live-index-grid">{latest.map(([label,m,fmt]) => <article key={label}><span>{label}</span><strong>{fmt(m.value)}</strong><small>{m.period}</small><Source href={m.sourceUrl}>{m.source}</Source></article>)}</div>}</section>
+    <section className="live-index-section compact-live-section"><div className="live-index-head"><div><span className="section-tag">Latest available {countryName} series</span><h2>Development indicators update on different schedules.</h2><p>The API asks each live source for its newest non-null {countryName} observation rather than requesting a fixed year.</p></div><span className={`live-status ${liveStatus}`}>{liveStatus === 'ready' ? 'Latest observations checked' : liveStatus === 'loading' ? 'Checking latest data…' : 'Using verified fallback where needed'}</span></div>{latest.length > 0 && <div className="live-index-grid">{latest.map(([label,m,fmt,description]) => <article key={label}><span>{label}</span><strong>{fmt(m.value)}</strong><small>{m.period}</small><p>{description}</p><Source href={m.sourceUrl}>{m.source}</Source></article>)}</div>}</section>
 
-    <section className="live-index-section development-global-index"><div className="live-index-head"><div><span className="section-tag">{countryName} in the world</span><h2>Development is bigger than GDP.</h2><p>These indices answer different questions: sustainable development, human capability, life satisfaction and hunger.</p></div></div><div className="live-index-grid stable-index-grid">{globalMeasures.map((item)=><article key={item.label}><span>{item.label}</span><strong>{item.value}</strong><small>{item.detail}</small><Source href={item.source.sourceUrl}>{item.source.source}</Source></article>)}</div></section>
+    <section className="live-index-section development-global-index"><div className="live-index-head"><div><span className="section-tag">{countryName} in the world</span><h2>Development is bigger than GDP.</h2><p>These indices answer different questions: sustainable development, human capability, life satisfaction and hunger.</p></div></div><div className="live-index-grid stable-index-grid">{globalMeasures.map((item)=><article key={item.label}><span>{item.label}</span><strong>{item.value}</strong><small>{item.detail}</small><p>{item.description}</p><Source href={item.source.sourceUrl}>{item.source.source}</Source></article>)}</div></section>
 
     {isIndia && <>
     <section className="niti-sdg-panel">
