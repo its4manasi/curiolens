@@ -1297,3 +1297,39 @@ html, body { width: 100%; max-width: 100%; overflow-x: clip; }
 .women-v13-mini-secondary{background:linear-gradient(90deg,#9cb5b1,#6d8f89)}
 .women-v13-focus{background:linear-gradient(145deg,#ffffff,#f4faf8)!important}
 .women-v13-focus-visual{background:linear-gradient(145deg,#0c6861,#168d80)!important}
+
+
+/* v13.21 · local geography simplification + women visual symmetry */
+.women-v13-dashboard{width:100%;max-width:none}
+.women-live-index{width:100%;max-width:none;margin-left:0;margin-right:0}
+.women-v13-card-grid{gap:16px}
+.women-v13-card{
+  background:linear-gradient(145deg,#f6fcfa,#edf8f5)!important;
+  border-color:#d1e8e2!important;
+}
+.women-v13-card:nth-child(3n+2){
+  background:linear-gradient(145deg,#f8fbfa,#eef5f3)!important;
+  border-color:#d8e7e3!important;
+}
+.women-v13-card:nth-child(3n){
+  background:linear-gradient(145deg,#f3faf8,#e8f5f1)!important;
+  border-color:#cee5df!important;
+}
+.women-v13-mini-chart.women-v13-mini-vertical{
+  display:flex;align-items:flex-end;justify-content:flex-start;gap:14px;height:74px;margin:14px 0 10px;
+}
+.women-v13-mini-column{display:grid;grid-template-rows:52px auto;gap:5px;justify-items:center;min-width:52px;max-width:92px}
+.women-v13-mini-column .women-v13-mini-track{width:22px;height:52px;border-radius:7px;background:#dfeae7;display:flex;align-items:flex-end;overflow:hidden}
+.women-v13-mini-column .women-v13-mini-track>span{width:100%;height:auto;border-radius:6px 6px 3px 3px}
+.women-v13-mini-column small{max-width:92px;color:#71868e;font-size:9px;line-height:1.15;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.women-v13-mini-primary{background:linear-gradient(180deg,#45b5a3,#168d80)!important}
+.women-v13-mini-secondary{background:linear-gradient(180deg,#9dbab4,#6f918a)!important}
+
+.local-explorer-controls{grid-template-columns:minmax(240px,1fr) minmax(240px,1fr);gap:14px;align-items:end}
+.local-explorer-controls>.smart-select:only-child{grid-column:1/-1}
+.local-explorer-grid{gap:20px}
+.local-map-wrap,.local-evidence-card{min-height:100%}
+@media(max-width:760px){
+  .local-explorer-controls{grid-template-columns:1fr}
+  .women-v13-card-grid{gap:12px}
+}
