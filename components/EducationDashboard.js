@@ -171,6 +171,49 @@ function StateComparisonChart({ metricKey, focusState, focusData, benchmarkRows 
   </div>;
 }
 
+
+function resolveSelectedMetric({ metric, focusState, liveMetrics, benchmarkRows, metricMeta }) {
+  const liveValue = numeric(liveMetrics?.[metric.key]);
+  if (liveValue !== undefined) {
+    return { value: liveValue, meta: metricMeta?.[metric.key] || null, provenance: 'live' };
+  }
+  const benchmark = (benchmarkRows || []).find((row) => samePlaceName(row.state || row.name, focusState));
+  const benchmarkValue = numeric(benchmark?.value);
+  if (benchmarkValue !== undefined) {
+    return {
+      value: benchmarkValue,
+      meta: {
+        source: benchmark?.source || metric.source?.name,
+        sourceUrl: benchmark?.sourceUrl || metric.source?.href,
+        period: benchmark?.period || metric.source?.period,
+        latestAvailable: true,
+        geographyLevel: 'state'
+      },
+      provenance: 'benchmark'
+    };
+  }
+  const fallbackValue = numeric(STATE_DATA?.[focusState]?.[metric.key]);
+  if (fallbackValue !== undefined) {
+    return {
+      value: fallbackValue,
+      meta: {
+        source: metric.source?.name,
+        sourceUrl: metric.source?.href,
+        period: metric.source?.period,
+        latestAvailable: false,
+        geographyLevel: 'state',
+        isFallback: true
+      },
+      provenance: 'verified-context'
+    };
+  }
+  return { value: undefined, meta: metricMeta?.[metric.key] || null, provenance: 'missing' };
+}
+
+function samePlaceName(a = '', b = '') {
+  return cleanKey(a) === cleanKey(b);
+}
+
 export default function EducationDashboard() {
   const [focusState, setFocusState] = useState('Bihar');
   const [district, setDistrict] = useState('All districts');
@@ -241,18 +284,21 @@ export default function EducationDashboard() {
   const displayData = { ...liveMetrics };
   const hasLive = Object.keys(liveMetrics).length > 0;
   const metric = METRICS.find((m) => m.key === metricKey) || METRICS[0];
+  const resolvedMetric = resolveSelectedMetric({ metric, focusState, liveMetrics: displayData, benchmarkRows, metricMeta });
+  const comparisonData = { ...displayData, [metric.key]: resolvedMetric.value };
   const worldInsight = WORLD_INSIGHTS[country] || DEFAULT_WORLD_INSIGHT;
   const locationLabel = `${focusState} · state overview`;
   const localSelection = district !== 'All districts' ? `${district}, ${focusState}` : focusState;
+  const isNorthEast = ['Arunachal Pradesh','Assam','Manipur','Meghalaya','Mizoram','Nagaland','Sikkim','Tripura'].includes(focusState);
 
 
   return <div className="education-dashboard-full education-v132">
-    <section className="edu-toolbar edu-toolbar-simple">
-      <div className="toolbar-intro"><span className="section-tag">Explore education</span><h2>Choose a state</h2><p>The main education dashboard stays at state level because that is where the connected UDISE+ metrics are consistently comparable. District and local-body exploration lives further down the page.</p></div>
+    <section className="edu-toolbar edu-toolbar-simple edu-toolbar-compact-v22">
+      <div className="toolbar-intro"><span className="section-tag">Explore education</span><h2>Choose a state</h2><p>Compare the newest connected state-level education measures, then use the local explorer for district evidence.</p></div>
       <div className="toolbar-controls toolbar-controls-state-only">
         <SmartSelect label="State / UT" value={focusState} options={ALL_STATES} onChange={setFocusState}/>
       </div>
-      <div className="education-location-status"><strong>{locationLabel}</strong><span>{dataStatus === 'loading' ? 'Checking the latest available official releases…' : (apiMeta.message || (hasLive ? 'Latest available official state data loaded.' : 'No source-backed metric returned yet. CurioLens will not guess a value.'))}</span></div>
+      <div className="education-location-status education-location-status-compact"><strong>{locationLabel}</strong><span>{dataStatus === 'loading' ? 'Checking latest official releases…' : (hasLive ? 'Latest available values loaded' : 'No source-backed state metric returned')}</span></div>
     </section>
 
     <section className="snapshot-section-v132">
@@ -261,8 +307,8 @@ export default function EducationDashboard() {
     </section>
 
     <section className="primary-data-grid" id="compare">
-      <article className="data-visual-panel comparison-panel"><div className="panel-topline"><div><span className="section-tag">Compare simply</span><h2>{focusState} vs top states</h2><p>One indicator at a time. Top five is calculated from all currently available state values for that metric.</p></div><SmartSelect className="inline-select" label="Question" value={metricKey} options={METRICS.map((m) => ({value:m.key,label:m.selectLabel || m.label}))} onChange={setMetricKey}/></div><StateComparisonChart metricKey={metricKey} focusState={focusState} focusData={displayData} benchmarkRows={benchmarkRows}/><CompactSource source={metric.source} live={hasLive && displayData[metric.key] !== undefined} meta={metricMeta[metric.key]}/></article>
-      <article className="data-visual-panel meaning-panel"><span className="section-tag">What does this mean?</span><h2>{metric.label}</h2><div className="meaning-number">{formatValue(metric.key,displayData[metric.key],metric.suffix)}</div><p>{metric.plain}</p><div className="meaning-rule"><span>For {locationLabel}</span><strong>{displayData[metric.key] === undefined ? 'This metric is not connected for this state yet.' : 'Use this number with the comparison and source year before drawing a conclusion.'}</strong></div><details className="learn-term"><summary>Learn the official term</summary><p><b>{metric.formal}</b> is the technical label used in many official datasets.</p></details><CompactSource source={metric.source} live={hasLive && displayData[metric.key] !== undefined} meta={metricMeta[metric.key]}/></article>
+      <article className="data-visual-panel comparison-panel"><div className="panel-topline"><div><span className="section-tag">Compare simply</span><h2>{focusState} vs top states</h2><p>One indicator at a time. Top five is calculated from all currently available state values for that metric.</p></div><SmartSelect className="inline-select" label="Question" value={metricKey} options={METRICS.map((m) => ({value:m.key,label:m.selectLabel || m.label}))} onChange={setMetricKey}/></div><StateComparisonChart metricKey={metricKey} focusState={focusState} focusData={comparisonData} benchmarkRows={benchmarkRows}/><CompactSource source={metric.source} live={resolvedMetric.value !== undefined} meta={resolvedMetric.meta}/></article>
+      <article className="data-visual-panel meaning-panel"><span className="section-tag">What does this mean?</span><h2>{metric.label}</h2><div className="meaning-number">{formatValue(metric.key,resolvedMetric.value,metric.suffix)}</div><p>{metric.plain}</p><div className="meaning-rule"><span>For {locationLabel}</span><strong>{resolvedMetric.value === undefined ? 'This metric is not connected for this state yet.' : 'This is the same selected-state value used in the comparison on the left.'}</strong></div><details className="learn-term"><summary>Learn the official term</summary><p><b>{metric.formal}</b> is the technical label used in many official datasets.</p></details><CompactSource source={metric.source} live={resolvedMetric.value !== undefined} meta={resolvedMetric.meta}/></article>
     </section>
 
     <section className="map-layout-grid map-layout-single" id="maps"><IndiaBenchmarkMap focusState={focusState} onStateSelect={setFocusState} benchmarkStates={BENCHMARKS}/></section>
@@ -280,7 +326,7 @@ export default function EducationDashboard() {
       </div>
       <div className="local-explorer-grid">
         <div className="local-map-wrap"><StateDistrictMap state={focusState} district={district} onDistrictSelect={(name) => districts.includes(name) && setDistrict(name)}/></div>
-        <div className="local-evidence-card"><span className="section-tag">Selected local context</span><h3>{localSelection}</h3><strong>{district === 'All districts' ? 'Choose a district to explore local evidence' : localBodyLens}</strong><p>NITI Aayog provides district-level evidence for selected programmes and indices, including national MPI district context and district SDG coverage in the North-East. Panchayat and ULB-level data is not uniformly available nationwide, so CurioLens treats it as an optional local lens rather than inheriting state values.</p><div className="district-evidence-links"><a href="https://www.niti.gov.in/competitive-federalism/overview-sustainable-development-goals" target="_blank" rel="noreferrer"><strong>NITI district context</strong><span>Open the official district-level development evidence ↗</span></a><a href="https://www.niti.gov.in/divisions/division/sustainable-development-goal" target="_blank" rel="noreferrer"><strong>NITI SDG data</strong><span>State/UT and officially covered district SDG sources ↗</span></a></div></div>
+        <div className="local-evidence-card"><span className="section-tag">Selected local context</span><h3>{localSelection}</h3><strong>{district === 'All districts' ? 'Choose a district to explore NITI evidence' : localBodyLens}</strong><p>{district === 'All districts' ? 'NITI Aayog publishes district-level evidence, but not every source is exposed through one stable machine-readable API. Select a district to see the official coverage that applies.' : `For ${district}, CurioLens keeps state education numbers separate. The official district sources below are the appropriate place for finer-grained development evidence.`}</p>{district !== 'All districts' && <div className="district-evidence-summary"><div><span>National MPI 2023</span><strong>District-level coverage</strong><small>Headcount ratio, intensity and MPI are published by NITI Aayog for districts.</small></div>{isNorthEast && <div><span>NER District SDG 2023–24</span><strong>District SDG coverage</strong><small>This selected state is covered by NITI Aayog’s North-Eastern Region District SDG Index.</small></div>}<div><span>Aspirational Districts</span><strong>49 KPIs across 5 themes</strong><small>Where the selected district is in the programme, the Champions of Change dashboard provides district performance data.</small></div></div>}<div className="district-evidence-links"><a href="https://www.niti.gov.in/node/868" target="_blank" rel="noreferrer"><strong>NITI National MPI 2023</strong><span>Open district poverty tables ↗</span></a>{isNorthEast && <a href="https://www.niti.gov.in/divisions/division/sustainable-development-goal" target="_blank" rel="noreferrer"><strong>NER District SDG Index</strong><span>Open district SDG data ↗</span></a>}<a href="https://www.niti.gov.in/aspirational-districts-programme" target="_blank" rel="noreferrer"><strong>Champions of Change</strong><span>District performance dashboard ↗</span></a></div></div>
       </div>
     </section>
 
