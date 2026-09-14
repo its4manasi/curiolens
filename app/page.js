@@ -20,7 +20,7 @@ export default function HomePage() {
         <h1>Understand your world through <em>evidence.</em></h1>
         <p>Choose a topic and a place. CurioLens turns public data into simple comparisons, clear explanations and links back to the original source.</p>
         <div className="hero-actions">
-          <Link className="primary-button" href="/education/">Explore topics</Link>
+          <Link className="primary-button" href="/#topics">Explore topics</Link>
           <Link className="ghost-button" href="/local-bodies/">Choose a place</Link>
         </div>
         <div className="v9-trust-line"><span>Simple language</span><i/><span>Local to global</span><i/><span>Source-linked</span></div>
@@ -37,7 +37,7 @@ export default function HomePage() {
       </div>
     </section>
 
-    <section className="v9-section">
+    <section className="v9-section" id="topics">
       <div className="v9-section-head"><div><span className="section-tag">Explore by topic</span><h2>Start with a question that matters.</h2></div><p>Every topic follows the same structure: what is happening, why it matters, who is affected and what could help.</p></div>
       <div className="v9-topic-grid">
         {topics.map(([icon,name,desc,href]) => <Link key={href} href={href} className="v9-topic-card"><span className="v9-topic-card-icon"><UiIcon name={icon} size={25}/></span><div><strong>{name}</strong><p>{desc}</p></div><b>›</b></Link>)}

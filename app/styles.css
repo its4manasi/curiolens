@@ -1098,3 +1098,101 @@ html, body { width: 100%; max-width: 100%; overflow-x: clip; }
 .econ-fiscal-track span{display:block;height:100%;border-radius:inherit;background:currentColor;color:#2a8c82}
 .econ-fiscal-row b{text-align:right;font-variant-numeric:tabular-nums}
 @media(max-width:720px){.econ-fiscal-meta{grid-template-columns:1fr}.econ-fiscal-row{grid-template-columns:36px 110px minmax(80px,1fr) 42px;gap:7px}.econ-fiscal-state{font-size:.86rem}.econ-fiscal-row b{font-size:.86rem}}
+
+/* v13.13: stable index cards + development State/UT SDG explorer */
+.stable-index-grid{align-items:stretch}
+.stable-index-grid article{min-height:154px}
+.stable-index-grid article>strong{font-variant-numeric:tabular-nums}
+.women-global-grid article,.climate-global-grid article{min-height:158px}
+.niti-sdg-panel{margin:26px auto;padding:24px;border:1px solid #d8e8e4;border-radius:24px;background:#fff;box-shadow:0 12px 32px rgba(24,79,74,.05)}
+.niti-sdg-controls{display:grid;grid-template-columns:minmax(240px,1.35fr) repeat(2,minmax(180px,.8fr));gap:14px;margin-top:18px}
+.niti-sdg-controls label,.niti-sdg-score{border:1px solid #dce9e6;border-radius:17px;background:#f9fcfb;padding:14px 16px;min-width:0}
+.niti-sdg-controls label{display:flex;flex-direction:column;gap:8px}
+.niti-sdg-controls label>span,.niti-sdg-score>span{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.055em;color:#607a76}
+.niti-sdg-controls select{width:100%;min-height:46px;border:1px solid #cfe1dd;border-radius:12px;background:#fff;padding:0 40px 0 12px;font:inherit;font-weight:700;color:#173f3b}
+.niti-sdg-score{display:flex;flex-direction:column;gap:6px}
+.niti-sdg-score strong{font-size:2.1rem;line-height:1;color:#0b756d}
+.niti-sdg-score small{color:#6b7e7b;line-height:1.35}
+.niti-top-five{margin-top:14px;padding:14px 16px;border-radius:15px;background:#eef8f5;color:#254f4b}
+.niti-top-five>b{display:block;margin-bottom:8px}
+.niti-top-five>div{display:flex;flex-wrap:wrap;gap:8px}
+.niti-top-five span{display:inline-flex;gap:6px;align-items:center;padding:7px 10px;border-radius:999px;background:#fff;border:1px solid #d9e8e4;font-size:12px}
+.niti-top-five strong{color:#087c72}
+@media(max-width:900px){.niti-sdg-controls{grid-template-columns:1fr 1fr}.niti-sdg-controls label{grid-column:1/-1}}
+@media(max-width:560px){.stable-index-grid article{min-height:132px}.niti-sdg-panel{padding:16px;border-radius:18px}.niti-sdg-controls{grid-template-columns:1fr}.niti-sdg-controls label{grid-column:auto}.niti-top-five>div{display:grid;grid-template-columns:1fr 1fr}.women-global-grid,.climate-global-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:390px){.women-global-grid,.climate-global-grid,.niti-top-five>div{grid-template-columns:1fr}}
+
+/* v13.14: global country context + working India state/district picker */
+.v9-place-popover .desktop-place-picker{width:390px!important;max-width:min(390px,calc(100vw - 28px));padding:18px!important;gap:12px!important}
+.place-picker-heading{display:grid;gap:4px;margin-bottom:2px}.place-picker-heading small{color:#6d7f7c;font-size:.76rem;line-height:1.45}.place-picker-title{display:flex;align-items:center;gap:8px}
+.place-picker-country-note,.country-scope-note{padding:12px 13px;border:1px solid #d8e7e4;border-radius:12px;background:#f4faf8;color:#5d7470;font-size:.8rem;line-height:1.5}
+.country-scope-note{width:min(1180px,calc(100% - 32px));margin:18px auto}.country-scope-note b{color:#184f4a}
+.place-picker-status{font-size:.73rem;color:#667b77}.place-picker-status.ready{color:#27766d}.place-picker-status.error{color:#9a5c4f}
+.place-go{border:0;cursor:pointer;font-family:inherit}
+.smart-select-search-wrap{padding:4px 4px 8px}.smart-select-search{width:100%;height:40px;border:1px solid #d2e4df;border-radius:10px;background:#f9fcfb;padding:0 11px;color:#173f3b;font:inherit;font-size:.88rem;outline:none}.smart-select-search:focus{border-color:#8fc8bc;box-shadow:0 0 0 3px rgba(11,143,126,.08)}
+.smart-select-empty{padding:15px 12px;color:#758884;font-size:.85rem;text-align:center}
+.v9-place-button>span{max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:900px){.country-scope-note{width:calc(100% - 32px)}.mobile-place-picker .smart-select-search{height:44px}.mobile-place-picker .place-picker-heading{margin-bottom:4px}}
+
+/* v13.15 · geography/data integrity + source directory + benchmark fixes */
+/* Keep the desktop country picker inside the viewport and below the header. */
+@media (min-width:901px){
+  .v9-place-popover .desktop-place-picker{
+    position:fixed!important;
+    top:72px!important;
+    right:18px!important;
+    left:auto!important;
+    width:min(360px,calc(100vw - 36px))!important;
+    max-width:none!important;
+    max-height:calc(100dvh - 92px)!important;
+    overflow-y:auto!important;
+    overscroll-behavior:contain;
+    z-index:14000!important;
+    padding:16px!important;
+    border-radius:18px!important;
+  }
+  .desktop-place-picker .smart-select{isolation:auto!important}
+  .desktop-place-picker .smart-select-layer{z-index:15000!important}
+  .desktop-place-picker .smart-select-menu{left:auto!important;right:0!important;width:100%!important;min-width:100%!important;max-width:100%!important}
+}
+
+/* Education: exact local data only; state context is separated visually. */
+.district-evidence-panel{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:18px;padding:22px;border:1px solid #d8e8e4;border-radius:20px;background:#fbfefd}
+.district-evidence-panel h2{margin:5px 0 8px;color:#173f3b;font-size:clamp(1.45rem,2.2vw,2rem)}
+.district-evidence-panel p{margin:0;color:#617873;line-height:1.55}
+.district-evidence-links{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.district-evidence-links a{display:flex;flex-direction:column;gap:5px;padding:14px;border:1px solid #dceae6;border-radius:14px;background:#fff;color:#173f3b;text-decoration:none}
+.district-evidence-links a:hover{border-color:#9bcfc4;background:#f6fbfa}
+.district-evidence-links span{color:#657b76;font-size:.78rem;line-height:1.45}
+.state-context-strip{grid-column:1/-1;display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:11px 13px;border-radius:12px;background:#eef7f4;color:#55706a;font-size:.79rem}
+.state-context-strip b{color:#185b54}.state-context-strip span{min-width:0}
+.benchmark-footnote{margin:10px 0 0;color:#687b77;font-size:.75rem;line-height:1.45}
+.state-rank-row.is-focus{background:#eef8f5;border-radius:10px;padding:6px 8px;margin:0 -8px}
+
+/* Sources: topic first, then India / global institutions. */
+.topic-source-groups{display:grid;gap:18px}
+.topic-source-group{padding:22px!important}
+.source-region-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:16px}
+.source-region-column{min-width:0}.source-region-column h3{margin:0 0 9px;color:#275b55;font-size:.82rem;text-transform:uppercase;letter-spacing:.07em}
+.source-region-column .source-link-grid{grid-template-columns:1fr!important;gap:8px!important}
+.source-region-column .source-link-card{min-height:94px!important;padding:14px!important}
+
+/* Homepage Explore should scroll to the topic directory without hiding it under the sticky header. */
+#topics{scroll-margin-top:86px}
+
+@media(max-width:760px){
+  .district-evidence-panel{grid-template-columns:1fr;padding:16px;border-radius:16px}
+  .district-evidence-links{grid-template-columns:1fr}
+  .state-context-strip{grid-column:auto;align-items:flex-start;flex-direction:column;gap:4px}
+  .source-region-grid{grid-template-columns:1fr}
+  .topic-source-group{padding:16px!important}
+}
+
+/* v13.16 — persistent country context on the world education map */
+.world-map-stage{position:relative}
+.world-map-stage .geo-map-wrap{margin-top:12px}
+.world-map-corner{position:absolute;top:14px;right:14px;z-index:6;width:min(260px,42%);display:grid;gap:3px;padding:11px 13px;border:1px solid rgba(195,220,214,.95);border-radius:12px;background:rgba(255,255,255,.94);box-shadow:0 10px 28px rgba(13,54,63,.10);backdrop-filter:blur(8px);pointer-events:none}
+.world-map-corner span{font-size:.62rem;text-transform:uppercase;letter-spacing:.08em;font-weight:850;color:#71858e}
+.world-map-corner strong{font-size:1rem;line-height:1.15;color:var(--navy)}
+.world-map-corner small{font-size:.72rem;line-height:1.35;color:#58717d}
+@media(max-width:600px){.world-map-corner{top:10px;right:10px;left:10px;width:auto;max-width:none}.world-map-corner small{font-size:.68rem}.geo-map-svg.is-world{padding-top:74px;box-sizing:border-box}}
