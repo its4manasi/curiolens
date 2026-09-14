@@ -1,5 +1,6 @@
 import './styles.css';
 import SiteNav from '../components/SiteNav';
+import SiteFooter from '../components/SiteFooter';
 
 export const metadata = {
   title: { default: 'CurioLens', template: '%s · CurioLens' },
@@ -17,10 +18,7 @@ export default function RootLayout({ children }) {
       <body>
         <SiteNav />
         <main>{children}</main>
-        <footer className="footer-new">
-          <div><b>CurioLens</b><span>Curiosity, backed by evidence.</span></div>
-          <small>Public-interest data, explained simply. · <a href="/sources/">Verify our sources</a></small>
-        </footer>
+        <SiteFooter />
       </body>
     </html>
   );
