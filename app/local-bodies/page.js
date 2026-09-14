@@ -1,0 +1,2 @@
+export const metadata = { title: 'Local Bodies' };
+export default function Page(){return <section className="shell topic-placeholder"><span className="kicker">Local Bodies</span><h1>See what the data says about your area.</h1><p>This section will connect state and district indicators to municipalities, blocks, panchayats and other local bodies wherever official data is available.</p><a className="read-link" href="/education/">Try the education explorer →</a></section>}
