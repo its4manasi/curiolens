@@ -1009,3 +1009,36 @@ html, body { width: 100%; max-width: 100%; overflow-x: clip; }
 /* v13.7 geography cascade: state -> optional division -> district */
 .education-v132 .toolbar-controls-simple{grid-template-columns:repeat(3,minmax(0,1fr))!important;max-width:960px}
 @media (max-width:900px){.education-v132 .toolbar-controls-simple{grid-template-columns:1fr!important;max-width:none}}
+
+/* v13.9 small polish patch: map tooltip, inner-page editorial headings, compact Sources hero */
+:root{--curio-editorial:"Iowan Old Style","Palatino Linotype","Book Antiqua",Georgia,serif}
+
+/* Keep the homepage brand typography unchanged; use editorial display type on inner-page hero titles only. */
+.sources-hero h1,
+.education-page-hero h1,
+.topic-dashboard-hero h1,
+.women-v13-hero h1,
+.frontier-hero h1,
+.data-hero h1{font-family:var(--curio-editorial);font-weight:700;letter-spacing:-.045em}
+
+/* Sources should read like a reference page, not a campaign billboard. */
+.sources-hero{padding-top:48px;padding-bottom:34px}
+.sources-hero h1{max-width:820px;font-size:clamp(2.6rem,4.25vw,4.6rem);line-height:1.01;margin:10px 0 14px}
+.sources-hero p{max-width:760px;font-size:1.02rem;line-height:1.58;margin:0}
+
+/* Map labels follow the pointer below it and stay inside the clipped map surface. */
+.map-tooltip{left:auto;bottom:auto;opacity:0;transform:translateX(-50%);transition:opacity .12s ease;max-width:min(220px,calc(100% - 18px));overflow:hidden;text-overflow:ellipsis}
+.map-tooltip.is-visible{opacity:1}
+.geo-shape:hover{fill:#8fcfc3;filter:drop-shadow(0 1px 1px rgba(14,90,81,.15))}
+.geo-shape.is-active{fill:#0f7168;stroke:#073f3b;stroke-width:1.8}
+.geo-shape:focus-visible{stroke:#073f3b;stroke-width:2.2}
+
+.policy-note{display:grid;gap:4px;margin:16px 0;padding:12px 13px;border:1px solid #d7e9e4;border-radius:12px;background:#f3faf8}
+.policy-note b{color:#145f59;font-size:.78rem}
+.policy-note span{color:#607883;font-size:.76rem;line-height:1.45}
+
+@media(max-width:800px){
+  .sources-hero{padding-top:30px!important;padding-bottom:26px!important}
+  .sources-hero h1{font-size:clamp(2.25rem,10vw,3.35rem)!important;line-height:1!important}
+  .sources-hero p{font-size:.96rem!important}
+}

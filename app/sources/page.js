@@ -43,8 +43,8 @@ export default function SourcesPage() {
     <div className="sources-page">
       <section className="sources-hero">
         <span className="section-tag">Verify the evidence</span>
-        <h1>Don’t just trust the chart. Check the source.</h1>
-        <p>CurioLens should make every important number traceable. These are the primary government and institutional portals we use or plan to use for public-interest data.</p>
+        <h1>Check the source behind every number.</h1>
+        <p>CurioLens links important claims to the government or institutional source they come from, with the reference year shown wherever possible.</p>
       </section>
 
       <section className="sources-grid-wrap">
