@@ -1333,3 +1333,67 @@ html, body { width: 100%; max-width: 100%; overflow-x: clip; }
   .local-explorer-controls{grid-template-columns:1fr}
   .women-v13-card-grid{gap:12px}
 }
+
+
+/* v13.22 · education consistency, compact state selector, local-source polish, health symmetry */
+.edu-toolbar-compact-v22{
+  grid-template-columns:minmax(0,1.35fr) minmax(260px,.55fr) auto!important;
+  align-items:end!important;
+  gap:20px!important;
+  padding:18px 20px!important;
+}
+.edu-toolbar-compact-v22 .toolbar-intro h2{margin-bottom:5px!important}
+.edu-toolbar-compact-v22 .toolbar-intro p{max-width:680px!important}
+.edu-toolbar-compact-v22 .toolbar-controls-state-only{grid-template-columns:minmax(220px,300px)!important}
+.education-location-status-compact{
+  grid-column:auto!important;
+  align-self:end!important;
+  min-height:48px!important;
+  padding:8px 11px!important;
+  border:1px solid #d8e8e4!important;
+  border-radius:12px!important;
+  background:#f7fbfa!important;
+  display:grid!important;
+  gap:1px!important;
+  white-space:nowrap!important;
+}
+.education-location-status-compact strong{font-size:.76rem!important;color:var(--navy)!important}
+.education-location-status-compact span{font-size:.68rem!important;color:#6b807b!important}
+
+/* Local pickers open upward on desktop so they do not cover the district map. */
+@media(min-width:761px){
+  .local-explorer-controls .smart-select-layer{top:auto!important;bottom:calc(100% + 8px)!important}
+  .local-explorer-controls .smart-select-menu{top:auto!important;bottom:0!important;max-height:260px!important}
+}
+.local-explorer-panel,.local-explorer-controls{overflow:visible!important}
+.local-explorer-controls{position:relative;z-index:20}
+.local-explorer-grid{position:relative;z-index:1}
+.district-evidence-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:7px 0 4px}
+.district-evidence-summary>div{padding:11px;border:1px solid #dceae6;border-radius:13px;background:#fff;display:grid;gap:3px}
+.district-evidence-summary span{font-size:.66rem;text-transform:uppercase;letter-spacing:.05em;font-weight:800;color:#6f817d}
+.district-evidence-summary strong{font-size:.86rem;color:#0b756d}
+.district-evidence-summary small{font-size:.72rem;line-height:1.4;color:#667c77}
+
+.health-live-dashboard.health-v22{width:min(1500px,calc(100% - 40px));margin:0 auto 56px}
+.health-v22 .live-index-head{margin-bottom:16px}
+.health-index-grid{grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:1fr;gap:14px}
+.health-index-grid article{height:100%;min-height:220px;padding:18px}
+.health-index-grid article>small{min-height:20px}
+.health-index-grid article>p{flex:1}
+
+@media(max-width:1100px){
+  .edu-toolbar-compact-v22{grid-template-columns:1fr minmax(240px,320px)!important}
+  .education-location-status-compact{grid-column:1/-1!important;width:max-content;max-width:100%}
+  .health-index-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:760px){
+  .edu-toolbar-compact-v22{grid-template-columns:1fr!important;padding:15px!important}
+  .edu-toolbar-compact-v22 .toolbar-controls-state-only{grid-template-columns:1fr!important}
+  .education-location-status-compact{width:100%!important;white-space:normal!important}
+  .district-evidence-summary{grid-template-columns:1fr}
+  .health-live-dashboard.health-v22{width:calc(100% - 24px)}
+}
+@media(max-width:520px){
+  .health-index-grid{grid-template-columns:1fr}
+  .health-index-grid article{min-height:0}
+}
