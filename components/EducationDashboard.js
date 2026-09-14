@@ -110,12 +110,26 @@ function formatValue(key, value, suffix = '') {
   return `${Math.round(value * 10) / 10}${suffix}`;
 }
 
-function CompactSource({ source, live }) {
-  return <div className="compact-source"><span>{live ? source.name : `Planned: ${source.name}`}</span><a href={source.href} target="_blank" rel="noreferrer">Verify ↗</a></div>;
+function sourceFromMeta(meta, fallback) {
+  if (!meta) return fallback;
+  return {
+    name: meta.source || fallback?.name || 'Official source',
+    href: meta.sourceUrl || fallback?.href || '#',
+    period: meta.period || fallback?.period || ''
+  };
 }
 
-function CompactMetricCard({ item, data, live, contextLabel }) {
-  return <article className="compact-metric-card"><div className="compact-metric-top"><span>{item.label}</span><strong>{formatValue(item.key, data?.[item.key], item.suffix || '')}</strong><p>{contextLabel || item.note}</p></div><CompactSource source={item.source} live={live && data?.[item.key] !== undefined}/></article>;
+function CompactSource({ source, live, meta }) {
+  const resolved = sourceFromMeta(meta, source);
+  const label = live
+    ? [resolved.name, meta?.period || resolved.period, meta?.latestAvailable ? 'latest available' : null].filter(Boolean).join(' · ')
+    : `Planned: ${resolved.name}`;
+  return <div className="compact-source"><span>{label}</span><a href={resolved.href} target="_blank" rel="noreferrer">Verify ↗</a></div>;
+}
+
+function CompactMetricCard({ item, data, live, meta, focusState }) {
+  const contextLabel = meta?.isFallback ? `${focusState} state context · district/division figure unavailable` : item.note;
+  return <article className="compact-metric-card"><div className="compact-metric-top"><span>{item.label}</span><strong>{formatValue(item.key, data?.[item.key], item.suffix || '')}</strong><p>{contextLabel}</p></div><CompactSource source={item.source} live={live && data?.[item.key] !== undefined} meta={meta}/></article>;
 }
 
 function StateComparisonChart({ metricKey, focusState, focusData }) {
@@ -210,7 +224,7 @@ export default function EducationDashboard() {
     }).then((body) => {
       if (!alive) return;
       const metrics = normaliseApiPayload(body);
-      setApiMeta({ geographyLevel: body.geographyLevel, stateFallback: body.stateFallback, message: body.message });
+      setApiMeta({ geographyLevel: body.geographyLevel, requestedGeographyLevel: body.requestedGeographyLevel, metricMeta: body.metricMeta || {}, message: body.message, dataPolicy: body.dataPolicy, manifestUpdated: body.manifestUpdated });
       setLiveMetrics(Object.fromEntries(Object.entries(metrics).filter(([,value]) => value !== undefined)));
       setDataStatus(Object.values(metrics).some((value) => value !== undefined) ? 'ready' : 'empty');
     }).catch(() => alive && setDataStatus('empty'));
@@ -219,10 +233,10 @@ export default function EducationDashboard() {
 
   const isStateView = division === 'All divisions' && district === 'All districts';
   const isDivisionView = division !== 'All divisions' && district === 'All districts';
-  const stateFallback = apiMeta.stateFallback || {};
-  const usesStateContext = !isStateView && Object.keys(liveMetrics).length === 0 && Object.keys(stateFallback).length > 0;
-  const displayData = usesStateContext ? { ...stateFallback } : { ...liveMetrics };
+  const metricMeta = apiMeta.metricMeta || {};
+  const displayData = { ...liveMetrics };
   const hasLive = Object.keys(liveMetrics).length > 0;
+  const hasStateContext = Object.values(metricMeta).some((item) => item?.isFallback);
   const metric = METRICS.find((m) => m.key === metricKey) || METRICS[0];
   const worldInsight = WORLD_INSIGHTS[country] || WORLD_INSIGHTS.India;
   const locationLabel = isStateView ? `${focusState} · state overview` : isDivisionView ? `${division}, ${focusState}` : `${district}, ${focusState}`;
@@ -243,17 +257,17 @@ export default function EducationDashboard() {
         {divisions.length > 0 && <SmartSelect label="Division" value={division} options={['All divisions', ...divisions]} onChange={setDivision}/>}
         <SmartSelect label="District" value={district} options={districts} onChange={setDistrict} disabled={districtStatus === 'loading'}/>
       </div>
-      <div className="education-location-status"><strong>{locationLabel}</strong><span>{dataStatus === 'loading' ? 'Checking official education data…' : hasLive ? (apiMeta.geographyLevel === 'district' ? 'District-level source data returned for this selection.' : 'Official UDISE+ state data loaded for this selection.') : (!isStateView && Object.keys(stateFallback).length ? 'District-specific values are not available for this metric yet. Showing clearly labelled state-level UDISE+ context instead.' : 'No source-backed metric returned yet. CurioLens will not substitute another state’s value.')}</span></div>
+      <div className="education-location-status"><strong>{locationLabel}</strong><span>{dataStatus === 'loading' ? 'Checking the latest available official releases…' : (apiMeta.message || (hasLive ? 'Latest available official data loaded for this selection.' : 'No source-backed metric returned yet. CurioLens will not guess a value.'))}</span></div>
     </section>
 
     <section className="snapshot-section-v132">
       <div className="snapshot-section-head"><div><span className="section-tag">At a glance</span><h2>{isStateView ? focusState : isDivisionView ? division : district}</h2></div><span>{isStateView ? 'State view' : isDivisionView ? `${focusState} · Division view` : `${focusState} · District view`}</span></div>
-      <div className="compact-metric-grid">{SNAPSHOTS.map((item) => <CompactMetricCard key={item.key} item={item} data={displayData} live={hasLive || usesStateContext} contextLabel={usesStateContext ? `${focusState} state context · district figure unavailable` : undefined}/>)}</div>
+      <div className="compact-metric-grid">{SNAPSHOTS.map((item) => <CompactMetricCard key={item.key} item={item} data={displayData} live={hasLive} meta={metricMeta[item.key]} focusState={focusState}/>)}</div>
     </section>
 
     <section className="primary-data-grid" id="compare">
-      <article className="data-visual-panel comparison-panel"><div className="panel-topline"><div><span className="section-tag">Compare simply</span><h2>{focusState} vs benchmark states</h2><p>One indicator at a time. Missing official values stay blank instead of being guessed.</p></div><SmartSelect className="inline-select" label="Question" value={metricKey} options={METRICS.map((m) => ({value:m.key,label:m.label}))} onChange={setMetricKey}/></div><StateComparisonChart metricKey={metricKey} focusState={focusState} focusData={displayData}/><CompactSource source={metric.source} live={hasLive && displayData[metric.key] !== undefined}/></article>
-      <article className="data-visual-panel meaning-panel"><span className="section-tag">What does this mean?</span><h2>{metric.label}</h2><div className="meaning-number">{formatValue(metric.key,displayData[metric.key],metric.suffix)}</div><p>{metric.plain}</p><div className="meaning-rule"><span>For {locationLabel}</span><strong>{displayData[metric.key] === undefined ? 'This metric is not connected for the selected geography yet.' : 'Use this number with the comparison and source year before drawing a conclusion.'}</strong></div><details className="learn-term"><summary>Learn the official term</summary><p><b>{metric.formal}</b> is the technical label used in many official datasets.</p></details><CompactSource source={metric.source} live={hasLive && displayData[metric.key] !== undefined}/></article>
+      <article className="data-visual-panel comparison-panel"><div className="panel-topline"><div><span className="section-tag">Compare simply</span><h2>{focusState} vs benchmark states</h2><p>One indicator at a time. Missing official values stay blank instead of being guessed.</p></div><SmartSelect className="inline-select" label="Question" value={metricKey} options={METRICS.map((m) => ({value:m.key,label:m.label}))} onChange={setMetricKey}/></div><StateComparisonChart metricKey={metricKey} focusState={focusState} focusData={displayData}/><CompactSource source={metric.source} live={hasLive && displayData[metric.key] !== undefined} meta={metricMeta[metric.key]}/></article>
+      <article className="data-visual-panel meaning-panel"><span className="section-tag">What does this mean?</span><h2>{metric.label}</h2><div className="meaning-number">{formatValue(metric.key,displayData[metric.key],metric.suffix)}</div><p>{metric.plain}</p><div className="meaning-rule"><span>For {locationLabel}</span><strong>{displayData[metric.key] === undefined ? 'This metric is not connected for the selected geography yet.' : 'Use this number with the comparison and source year before drawing a conclusion.'}</strong></div><details className="learn-term"><summary>Learn the official term</summary><p><b>{metric.formal}</b> is the technical label used in many official datasets.</p></details><CompactSource source={metric.source} live={hasLive && displayData[metric.key] !== undefined} meta={metricMeta[metric.key]}/></article>
     </section>
 
     <section className="map-layout-grid" id="maps"><IndiaBenchmarkMap focusState={focusState} onStateSelect={setFocusState} benchmarkStates={BENCHMARKS}/><StateDistrictMap state={focusState} district={district} onDistrictSelect={(name) => districts.includes(name) && setDistrict(name)}/></section>
@@ -262,6 +276,6 @@ export default function EducationDashboard() {
 
     <section className="bottom-insight-grid"><article className="insight-card"><span className="section-tag">Where are the gaps?</span><h2>{focusState} vs available benchmarks</h2><div className="gap-list-modern">{gapRows.map((g) => <div key={g.key}><div><span>{g.label}</span><strong>{g.gap === undefined ? '—' : `${g.gap > 0 ? '+' : ''}${g.gap}${g.key === 'ptr' ? '' : ' pp'}`}</strong></div><div className="gap-rail"><i style={{width:g.gap === undefined ? '0%' : `${Math.min(100,Math.abs(g.gap)*3)}%`}}/></div></div>)}</div></article><article className="insight-card"><span className="section-tag">What could help?</span><h2>Questions worth investigating</h2><ol className="way-forward-list"><li><b>Teacher availability</b><span>Where are classrooms most crowded?</span></li><li><b>Secondary transition</b><span>Where are students leaving before Classes 10–12?</span></li><li><b>Girls’ participation</b><span>Where do persistent participation gaps remain?</span></li><li><b>Learning outcomes</b><span>Are students learning what their grade expects?</span></li></ol></article></section>
 
-    <div className="data-integrity-note"><strong>Data integrity first.</strong> Every State/UT loads its districts through the CurioLens geography API. Division is optional because India does not use one uniform division layer nationwide. Official UDISE+ 2023-24 state data is shown for every State/UT; when a finer geography has no verified metric, CurioLens shows the state figure only as clearly labelled state context.</div>
+    <div className="data-integrity-note"><strong>Data integrity first.</strong> CurioLens selects the latest available official release independently for each metric. If a newer release lacks a value, the engine can use the previous published release; if district/division data is unavailable, a state value may appear only as clearly labelled context. The source and period travel with every metric. {hasStateContext ? 'Some values on this view are state context because finer-geography data is not yet connected.' : ''}</div>
   </div>;
 }
