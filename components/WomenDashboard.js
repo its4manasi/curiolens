@@ -95,12 +95,12 @@ function SourceLink({ href, children = 'Check official data' }) {
 }
 
 function MiniBars({ lens }) {
-  const a = Math.max(4, Math.min(100, (lens.a / lens.max) * 100));
-  const b = Math.max(4, Math.min(100, (lens.b / lens.max) * 100));
+  const a = Math.max(8, Math.min(100, (lens.a / lens.max) * 100));
+  const b = Math.max(8, Math.min(100, (lens.b / lens.max) * 100));
   return (
-    <div className="women-v13-mini-chart" aria-label={lens.benchmark}>
-      <div className="women-v13-mini-track"><span className="women-v13-mini-primary" style={{ width: `${a}%` }} /></div>
-      <div className="women-v13-mini-track"><span className="women-v13-mini-secondary" style={{ width: `${b}%` }} /></div>
+    <div className="women-v13-mini-chart women-v13-mini-vertical" aria-label={lens.benchmark}>
+      <div className="women-v13-mini-column"><div className="women-v13-mini-track"><span className="women-v13-mini-primary" style={{ height: `${a}%` }} /></div><small>{lens.mainLabel}</small></div>
+      <div className="women-v13-mini-column"><div className="women-v13-mini-track"><span className="women-v13-mini-secondary" style={{ height: `${b}%` }} /></div><small>{lens.compareLabel}</small></div>
     </div>
   );
 }

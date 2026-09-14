@@ -173,8 +173,6 @@ function StateComparisonChart({ metricKey, focusState, focusData, benchmarkRows 
 
 export default function EducationDashboard() {
   const [focusState, setFocusState] = useState('Bihar');
-  const [division, setDivision] = useState('All divisions');
-  const [divisions, setDivisions] = useState([]);
   const [district, setDistrict] = useState('All districts');
   const [districts, setDistricts] = useState(['All districts']);
   const [districtStatus, setDistrictStatus] = useState('loading');
@@ -184,12 +182,10 @@ export default function EducationDashboard() {
   const [dataStatus, setDataStatus] = useState('idle');
   const [apiMeta, setApiMeta] = useState({});
   const [benchmarkRows, setBenchmarkRows] = useState([]);
-  const [localBodyLens, setLocalBodyLens] = useState('Urban local bodies (ULB)');
+  const [localBodyLens, setLocalBodyLens] = useState('District evidence');
 
   useEffect(() => {
     let alive = true;
-    setDivision('All divisions');
-    setDivisions([]);
     setDistrict('All districts');
     setDistricts(['All districts']);
     setDistrictStatus('loading');
@@ -199,33 +195,13 @@ export default function EducationDashboard() {
       return body;
     }).then((body) => {
       if (!alive) return;
-      const divisionNames = (body.divisions || []).map((item) => item.name).filter(Boolean);
       const names = Array.from(new Set((body.districts || []).filter(Boolean))).sort((a,b) => a.localeCompare(b));
-      setDivisions(divisionNames);
       setDistricts(['All districts', ...names]);
       setDistrictStatus(names.length ? 'ready' : 'error');
     }).catch(() => alive && setDistrictStatus('error'));
     return () => { alive = false; };
   }, [focusState]);
 
-  useEffect(() => {
-    if (division === 'All divisions') return;
-    let alive = true;
-    setDistrict('All districts');
-    setDistricts(['All districts']);
-    setDistrictStatus('loading');
-    fetch(`/api/geography?state=${encodeURIComponent(focusState)}&division=${encodeURIComponent(division)}`).then(async (r) => {
-      const body = await r.json().catch(() => ({}));
-      if (!r.ok) throw body;
-      return body;
-    }).then((body) => {
-      if (!alive) return;
-      const names = Array.from(new Set((body.districts || []).filter(Boolean))).sort((a,b) => a.localeCompare(b));
-      setDistricts(['All districts', ...names]);
-      setDistrictStatus(names.length ? 'ready' : 'error');
-    }).catch(() => alive && setDistrictStatus('error'));
-    return () => { alive = false; };
-  }, [focusState, division]);
 
   useEffect(() => {
     let alive = true;
@@ -296,15 +272,15 @@ export default function EducationDashboard() {
     <section className="bottom-insight-grid bottom-insight-single"><article className="insight-card"><span className="section-tag">What could help?</span><h2>Questions worth investigating</h2><ol className="way-forward-list"><li><b>Teacher availability</b><span>Where are classrooms most crowded?</span></li><li><b>Secondary transition</b><span>Where are students leaving before Classes 10–12?</span></li><li><b>Girls’ participation</b><span>Where do persistent participation gaps remain?</span></li><li><b>Learning outcomes</b><span>Are students learning what their grade expects?</span></li></ol></article></section>
 
     <section className="local-explorer-panel" id="local">
-      <div className="local-explorer-copy"><span className="section-tag">Explore locally</span><h2>District and local-body context</h2><p>District selection is kept separate from the state education dashboard. Use it to explore NITI Aayog district evidence and then choose an urban or rural local-body lens. CurioLens does not label state education numbers as district values.</p></div>
+      <div className="local-explorer-copy"><span className="section-tag">Explore locally</span><h2>District context first</h2><p>Choose a district directly. NITI Aayog publishes district-level development evidence for selected indicators, while panchayat and urban-local-body coverage varies by programme and source. CurioLens keeps the state education dashboard separate and only shows finer-geography evidence where an official source supports it.</p></div>
       <div className="local-explorer-controls">
-        {divisions.length > 0 && <SmartSelect label="Division (optional)" value={division} options={['All divisions', ...divisions]} onChange={setDivision}/>}
         <SmartSelect label="District" value={district} options={districts} onChange={setDistrict} disabled={districtStatus === 'loading'}/>
-        <SmartSelect label="Local body lens" value={localBodyLens} options={['Urban local bodies (ULB)','Rural local bodies (RLB)']} onChange={setLocalBodyLens}/>
+        {district !== 'All districts' && <SmartSelect label="Local body lens" value={localBodyLens} options={['District evidence','Urban local bodies (ULB)','Rural local bodies (RLB)']} onChange={setLocalBodyLens}/>}
+
       </div>
       <div className="local-explorer-grid">
         <div className="local-map-wrap"><StateDistrictMap state={focusState} district={district} onDistrictSelect={(name) => districts.includes(name) && setDistrict(name)}/></div>
-        <div className="local-evidence-card"><span className="section-tag">Selected local context</span><h3>{localSelection}</h3><strong>{localBodyLens}</strong><p>NITI Aayog provides district-level evidence for selected programmes and indices, including national MPI district context and district SDG coverage in the North-East. Local-body-level metrics vary by source, so CurioLens only displays them when an official machine-readable source is connected.</p><div className="district-evidence-links"><a href="https://www.niti.gov.in/competitive-federalism/overview-sustainable-development-goals" target="_blank" rel="noreferrer"><strong>NITI district context</strong><span>Open the official district-level development evidence ↗</span></a><a href="https://www.niti.gov.in/divisions/division/sustainable-development-goal" target="_blank" rel="noreferrer"><strong>NITI SDG data</strong><span>State/UT and officially covered district SDG sources ↗</span></a></div></div>
+        <div className="local-evidence-card"><span className="section-tag">Selected local context</span><h3>{localSelection}</h3><strong>{district === 'All districts' ? 'Choose a district to explore local evidence' : localBodyLens}</strong><p>NITI Aayog provides district-level evidence for selected programmes and indices, including national MPI district context and district SDG coverage in the North-East. Panchayat and ULB-level data is not uniformly available nationwide, so CurioLens treats it as an optional local lens rather than inheriting state values.</p><div className="district-evidence-links"><a href="https://www.niti.gov.in/competitive-federalism/overview-sustainable-development-goals" target="_blank" rel="noreferrer"><strong>NITI district context</strong><span>Open the official district-level development evidence ↗</span></a><a href="https://www.niti.gov.in/divisions/division/sustainable-development-goal" target="_blank" rel="noreferrer"><strong>NITI SDG data</strong><span>State/UT and officially covered district SDG sources ↗</span></a></div></div>
       </div>
     </section>
 
