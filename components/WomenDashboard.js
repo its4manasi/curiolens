@@ -95,12 +95,12 @@ function SourceLink({ href, children = 'Check official data' }) {
 }
 
 function MiniBars({ lens }) {
-  const a = Math.max(4, (lens.a / lens.max) * 100);
-  const b = Math.max(4, (lens.b / lens.max) * 100);
+  const a = Math.max(4, Math.min(100, (lens.a / lens.max) * 100));
+  const b = Math.max(4, Math.min(100, (lens.b / lens.max) * 100));
   return (
-    <div className="women-v13-mini-bars" aria-label={lens.benchmark}>
-      <span style={{ width: `${a}%` }} />
-      <span style={{ width: `${b}%` }} />
+    <div className="women-v13-mini-chart" aria-label={lens.benchmark}>
+      <div className="women-v13-mini-track"><span className="women-v13-mini-primary" style={{ width: `${a}%` }} /></div>
+      <div className="women-v13-mini-track"><span className="women-v13-mini-secondary" style={{ width: `${b}%` }} /></div>
     </div>
   );
 }
@@ -212,7 +212,7 @@ export default function WomenDashboard() {
 
       <section className="women-v13-card-grid">
         {dynamicLenses.map((lens) => (
-          <article key={lens.id} className={`women-v13-card ${lens.tone} ${selected === lens.id ? 'is-active' : ''}`} onClick={() => setSelected(lens.id)}>
+          <article key={lens.id} className={`women-v13-card ${selected === lens.id ? 'is-active' : ''}`} onClick={() => setSelected(lens.id)}>
             <header>
               <span className="women-v13-card-icon">{lens.icon}</span>
               <div><small>{lens.year}</small><h3>{lens.title}</h3></div>
@@ -231,7 +231,7 @@ export default function WomenDashboard() {
         ))}
       </section>
 
-      <section className={`women-v13-focus ${active.tone}`}>
+      <section className="women-v13-focus">
         <div className="women-v13-focus-copy">
           <span className="women-v13-section-label">Selected lens · {active.title}</span>
           <h2>{active.question}</h2>
