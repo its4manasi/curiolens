@@ -1,38 +1,20 @@
-import EducationPTR from '../../components/EducationPTR';
+import EducationDashboard from '../../components/EducationDashboard';
 
 export const metadata = {
-  title: 'Education data',
-  description: 'Explore official Indian education data through a concise CurioLens view.',
+  title: 'Education explorer',
+  description: 'Explore Bihar education from state comparisons down to urban and rural local areas.',
 };
 
 export default function EducationPage() {
   return (
     <>
-      <section className="education-hero shell">
-        <div className="kicker">Education · India</div>
-        <h1>School education,<br />without the spreadsheet.</h1>
-        <p>
-          A concise view of official education indicators. CurioLens requests the source data dynamically and turns it into something easier to explore.
-        </p>
+      <section className="education-hero shell compact-education-hero">
+        <div className="kicker">Education · Bihar</div>
+        <h1>How is education doing where you live?</h1>
+        <p>Start with Bihar, compare it with five benchmark states, then move down to districts and urban or rural local bodies. Every number should answer a simple question, not create another spreadsheet.</p>
       </section>
-
       <section className="shell education-section">
-        <EducationPTR />
-      </section>
-
-      <section className="shell education-explainer">
-        <div>
-          <span className="kicker">What this means</span>
-          <h2>One number, with context.</h2>
-        </div>
-        <div>
-          <p>
-            Pupil–teacher ratio is the average number of enrolled students per teacher at a given level of education. It is useful as a broad capacity indicator, but it does not by itself measure teaching quality or classroom experience.
-          </p>
-          <p>
-            This is the first CurioLens government-data module. The same pattern can later support enrolment, school infrastructure, gender, dropout rates and district-level comparisons.
-          </p>
-        </div>
+        <EducationDashboard />
       </section>
     </>
   );
