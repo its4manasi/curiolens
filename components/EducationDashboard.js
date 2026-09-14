@@ -25,11 +25,11 @@ const STATE_DATA = {
 };
 
 const METRICS = [
-  { key: 'literacy', label: 'Can read and write', formal: 'Literacy rate', suffix: '%', plain: 'Out of every 100 people, about how many can read and write.', max: 100, better: 'higher', source: SOURCES.census },
-  { key: 'ptr', label: 'Students per teacher', formal: 'Pupil–teacher ratio', suffix: '', plain: 'About how many students share one teacher. Lower usually means more teacher time per student.', max: 40, better: 'lower', source: SOURCES.udise },
-  { key: 'girls', label: 'Girls among students', formal: 'Share of girls enrolled', suffix: '%', plain: 'Out of every 100 enrolled students, about how many are girls.', max: 100, better: 'higher', source: SOURCES.udise },
-  { key: 'secondary', label: 'Finish secondary school', formal: 'Secondary completion', suffix: '%', plain: 'About how many students reach the end of secondary school.', max: 100, better: 'higher', source: SOURCES.udise },
-  { key: 'higherEd', label: 'Continue to college', formal: 'Higher-education GER', suffix: '%', plain: 'How many young people in the college-age group are enrolled in higher education.', max: 50, better: 'higher', source: SOURCES.aishe },
+  { key: 'literacy', label: 'Can read and write', selectLabel: 'How many people can read and write?', formal: 'Literacy rate', suffix: '%', plain: 'Out of every 100 people, about how many can read and write.', max: 100, better: 'higher', source: SOURCES.census },
+  { key: 'ptr', label: 'Students per teacher', selectLabel: 'How many students per teacher?', formal: 'Pupil–teacher ratio', suffix: '', plain: 'About how many students share one teacher. Lower usually means more teacher time per student.', max: 40, better: 'lower', source: SOURCES.udise },
+  { key: 'girls', label: 'Girls among students', selectLabel: 'How many girls are studying?', formal: 'Share of girls enrolled', suffix: '%', plain: 'Out of every 100 enrolled students, about how many are girls.', max: 100, better: 'higher', source: SOURCES.udise },
+  { key: 'secondary', label: 'Finish secondary school', selectLabel: 'How many students finish secondary school?', formal: 'Secondary completion', suffix: '%', plain: 'About how many students reach the end of secondary school.', max: 100, better: 'higher', source: SOURCES.udise },
+  { key: 'higherEd', label: 'Continue to college', selectLabel: 'How many continue to college?', formal: 'Higher-education GER', suffix: '%', plain: 'How many young people in the college-age group are enrolled in higher education.', max: 50, better: 'higher', source: SOURCES.aishe },
 ];
 
 const SNAPSHOTS = [
@@ -63,6 +63,12 @@ const WORLD_INSIGHTS = {
     source: SOURCES.worldBank
   },
   India: { metric: 'National baseline', copy: 'Use India as context before comparing internationally. Country examples are prompts for investigation, not copy-and-paste policy prescriptions.', source: SOURCES.worldBank },
+};
+
+const DEFAULT_WORLD_INSIGHT = {
+  metric: 'Country selected',
+  copy: 'CurioLens does not yet have a curated education case study for this country. Keep the selection visible and use the linked global sources for verified country-level indicators.',
+  source: SOURCES.worldBank
 };
 
 const cleanKey = (value = '') => value.toString().toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -132,26 +138,36 @@ function CompactMetricCard({ item, data, live, meta, focusState }) {
   return <article className="compact-metric-card"><div className="compact-metric-top"><span>{item.label}</span><strong>{formatValue(item.key, data?.[item.key], item.suffix || '')}</strong><p>{contextLabel}</p></div><CompactSource source={item.source} live={live && data?.[item.key] !== undefined} meta={meta}/></article>;
 }
 
-function StateComparisonChart({ metricKey, focusState, focusData }) {
+function StateComparisonChart({ metricKey, focusState, focusData, benchmarkRows = [] }) {
   const metric = METRICS.find((m) => m.key === metricKey) || METRICS[0];
-  const names = Array.from(new Set([focusState, ...BENCHMARKS, 'Bihar']));
-  const rows = names.map((name) => ({ name, value: name === focusState ? focusData?.[metric.key] : STATE_DATA[name]?.[metric.key] })).filter((row) => row.value !== undefined);
-  if (!rows.length) return <div className="comparison-empty">No comparable value is connected for this indicator yet.</div>;
-  const sorted = [...rows].sort((a,b) => metric.better === 'lower' ? a.value - b.value : b.value - a.value);
-  const peers = rows.filter((row) => row.name !== focusState);
-  const peerAvg = peers.length ? Math.round(peers.reduce((sum,row) => sum + row.value,0) / peers.length) : undefined;
-  const focus = rows.find((row) => row.name === focusState);
-  const best = sorted[0];
-  const maxValue = Math.max(...rows.map((row) => row.value), metric.max || 0);
-  const gap = focus && peerAvg !== undefined ? (metric.better === 'lower' ? focus.value - peerAvg : peerAvg - focus.value) : undefined;
+  const liveRows = benchmarkRows
+    .map((row) => ({ name: row.state || row.name, value: numeric(row.value) }))
+    .filter((row) => row.name && row.value !== undefined);
+  const fallbackRows = Object.entries(STATE_DATA)
+    .map(([name, values]) => ({ name, value: values?.[metric.key] }))
+    .filter((row) => row.value !== undefined);
+  const sourceRows = liveRows.length ? liveRows : fallbackRows;
+  const deduped = new Map(sourceRows.map((row) => [row.name, row]));
+  if (focusData?.[metric.key] !== undefined) deduped.set(focusState, { name: focusState, value: focusData[metric.key] });
+  const allRows = Array.from(deduped.values());
+  if (!allRows.length) return <div className="comparison-empty">No comparable state values are connected for this indicator yet.</div>;
+  const sortedAll = [...allRows].sort((a,b) => metric.better === 'lower' ? a.value - b.value : b.value - a.value);
+  const topFive = sortedAll.slice(0, 5);
+  const focus = allRows.find((row) => row.name === focusState);
+  const visible = focus && !topFive.some((row) => row.name === focusState) ? [...topFive, focus] : topFive;
+  const topFiveAvg = topFive.length ? Math.round((topFive.reduce((sum,row) => sum + row.value,0) / topFive.length) * 10) / 10 : undefined;
+  const best = sortedAll[0];
+  const maxValue = Math.max(...visible.map((row) => row.value), metric.max || 0);
+  const gap = focus && topFiveAvg !== undefined ? (metric.better === 'lower' ? focus.value - topFiveAvg : topFiveAvg - focus.value) : undefined;
   return <div className="comparison-modern" role="img" aria-label={`${metric.formal} comparison`}>
     <div className="comparison-summary compact-comparison-summary">
       <div className="comparison-summary-card focus"><span>{focusState}</span><strong>{focus ? `${focus.value}${metric.suffix}` : '—'}</strong><small>Selected state</small></div>
-      <div className="comparison-summary-card"><span>Peer average</span><strong>{peerAvg !== undefined ? `${peerAvg}${metric.suffix}` : '—'}</strong><small>Available benchmark values</small></div>
+      <div className="comparison-summary-card"><span>Top-5 average</span><strong>{topFiveAvg !== undefined ? `${topFiveAvg}${metric.suffix}` : '—'}</strong><small>Best five available states</small></div>
       <div className="comparison-summary-card"><span>Best available</span><strong>{best?.name || '—'}</strong><small>{best ? `${best.value}${metric.suffix}` : ''}</small></div>
-      <div className="comparison-summary-card"><span>Gap</span><strong>{gap === undefined ? '—' : `${gap > 0 ? '+' : ''}${gap}${metric.key === 'ptr' ? '' : ' pp'}`}</strong><small>To peer average</small></div>
+      <div className="comparison-summary-card"><span>Gap</span><strong>{gap === undefined ? '—' : `${gap > 0 ? '+' : ''}${Math.round(gap * 10) / 10}${metric.key === 'ptr' ? '' : ' pp'}`}</strong><small>To top-5 average</small></div>
     </div>
-    <div className="state-rank-list compact-rank-list">{sorted.map((row,index) => <div className={`state-rank-row ${row.name === focusState ? 'is-bihar' : ''}`} key={row.name}><div className="state-rank-meta"><span className="rank-no">{index + 1}</span><strong>{row.name}</strong><span className="rank-value">{row.value}{metric.suffix}</span></div><div className="state-rank-track"><i style={{width:`${Math.max(8,(row.value/maxValue)*100)}%`}}/></div></div>)}</div>
+    <div className="state-rank-list compact-rank-list">{visible.map((row,index) => <div className={`state-rank-row ${row.name === focusState ? 'is-focus' : ''}`} key={row.name}><div className="state-rank-meta"><span className="rank-no">{sortedAll.findIndex((item) => item.name === row.name) + 1}</span><strong>{row.name}</strong><span className="rank-value">{row.value}{metric.suffix}</span></div><div className="state-rank-track"><i style={{width:`${Math.max(8,(row.value/maxValue)*100)}%`}}/></div></div>)}</div>
+    <p className="benchmark-footnote">Top five is calculated from every state value currently available for this metric. The selected state is also shown even when it is outside the top five.</p>
   </div>;
 }
 
@@ -167,6 +183,7 @@ export default function EducationDashboard() {
   const [liveMetrics, setLiveMetrics] = useState({});
   const [dataStatus, setDataStatus] = useState('idle');
   const [apiMeta, setApiMeta] = useState({});
+  const [benchmarkRows, setBenchmarkRows] = useState([]);
 
   useEffect(() => {
     let alive = true;
@@ -224,21 +241,36 @@ export default function EducationDashboard() {
     }).then((body) => {
       if (!alive) return;
       const metrics = normaliseApiPayload(body);
-      setApiMeta({ geographyLevel: body.geographyLevel, requestedGeographyLevel: body.requestedGeographyLevel, metricMeta: body.metricMeta || {}, message: body.message, dataPolicy: body.dataPolicy, manifestUpdated: body.manifestUpdated });
+      setApiMeta({ geographyLevel: body.geographyLevel, requestedGeographyLevel: body.requestedGeographyLevel, metricMeta: body.metricMeta || {}, stateContext: body.stateContext || null, message: body.message, dataPolicy: body.dataPolicy, manifestUpdated: body.manifestUpdated });
       setLiveMetrics(Object.fromEntries(Object.entries(metrics).filter(([,value]) => value !== undefined)));
       setDataStatus(Object.values(metrics).some((value) => value !== undefined) ? 'ready' : 'empty');
     }).catch(() => alive && setDataStatus('empty'));
     return () => { alive = false; };
   }, [focusState, division, district]);
 
+
+  useEffect(() => {
+    let alive = true;
+    fetch(`/api/education?benchmark=1&metric=${encodeURIComponent(metricKey)}`)
+      .then(async (r) => {
+        const body = await r.json().catch(() => ({}));
+        if (!r.ok) throw body;
+        return body;
+      })
+      .then((body) => { if (alive) setBenchmarkRows(Array.isArray(body.rows) ? body.rows : []); })
+      .catch(() => alive && setBenchmarkRows([]));
+    return () => { alive = false; };
+  }, [metricKey]);
+
   const isStateView = division === 'All divisions' && district === 'All districts';
   const isDivisionView = division !== 'All divisions' && district === 'All districts';
   const metricMeta = apiMeta.metricMeta || {};
   const displayData = { ...liveMetrics };
   const hasLive = Object.keys(liveMetrics).length > 0;
-  const hasStateContext = Object.values(metricMeta).some((item) => item?.isFallback);
+  const stateContext = apiMeta.stateContext || null;
+  const hasStateContext = Boolean(stateContext && Object.keys(stateContext.metrics || {}).length);
   const metric = METRICS.find((m) => m.key === metricKey) || METRICS[0];
-  const worldInsight = WORLD_INSIGHTS[country] || WORLD_INSIGHTS.India;
+  const worldInsight = WORLD_INSIGHTS[country] || DEFAULT_WORLD_INSIGHT;
   const locationLabel = isStateView ? `${focusState} · state overview` : isDivisionView ? `${division}, ${focusState}` : `${district}, ${focusState}`;
 
   const gapRows = useMemo(() => METRICS.map((m) => {
@@ -266,16 +298,25 @@ export default function EducationDashboard() {
     </section>
 
     <section className="primary-data-grid" id="compare">
-      <article className="data-visual-panel comparison-panel"><div className="panel-topline"><div><span className="section-tag">Compare simply</span><h2>{focusState} vs benchmark states</h2><p>One indicator at a time. Missing official values stay blank instead of being guessed.</p></div><SmartSelect className="inline-select" label="Question" value={metricKey} options={METRICS.map((m) => ({value:m.key,label:m.label}))} onChange={setMetricKey}/></div><StateComparisonChart metricKey={metricKey} focusState={focusState} focusData={displayData}/><CompactSource source={metric.source} live={hasLive && displayData[metric.key] !== undefined} meta={metricMeta[metric.key]}/></article>
+      <article className="data-visual-panel comparison-panel"><div className="panel-topline"><div><span className="section-tag">Compare simply</span><h2>{focusState} vs top states</h2><p>One indicator at a time. Top five is calculated from all currently available state values for that metric.</p></div><SmartSelect className="inline-select" label="Question" value={metricKey} options={METRICS.map((m) => ({value:m.key,label:m.selectLabel || m.label}))} onChange={setMetricKey}/></div><StateComparisonChart metricKey={metricKey} focusState={focusState} focusData={displayData} benchmarkRows={benchmarkRows}/><CompactSource source={metric.source} live={hasLive && displayData[metric.key] !== undefined} meta={metricMeta[metric.key]}/></article>
       <article className="data-visual-panel meaning-panel"><span className="section-tag">What does this mean?</span><h2>{metric.label}</h2><div className="meaning-number">{formatValue(metric.key,displayData[metric.key],metric.suffix)}</div><p>{metric.plain}</p><div className="meaning-rule"><span>For {locationLabel}</span><strong>{displayData[metric.key] === undefined ? 'This metric is not connected for the selected geography yet.' : 'Use this number with the comparison and source year before drawing a conclusion.'}</strong></div><details className="learn-term"><summary>Learn the official term</summary><p><b>{metric.formal}</b> is the technical label used in many official datasets.</p></details><CompactSource source={metric.source} live={hasLive && displayData[metric.key] !== undefined} meta={metricMeta[metric.key]}/></article>
     </section>
 
     <section className="map-layout-grid" id="maps"><IndiaBenchmarkMap focusState={focusState} onStateSelect={setFocusState} benchmarkStates={BENCHMARKS}/><StateDistrictMap state={focusState} district={district} onDistrictSelect={(name) => districts.includes(name) && setDistrict(name)}/></section>
 
-    <section className="world-section-grid"><WorldEducationMap activeCountry={country} onCountrySelect={(name) => WORLD_INSIGHTS[name] && setCountry(name)} countries={Object.keys(WORLD_INSIGHTS)}/><aside className="world-insight-panel"><span className="section-tag">Ideas worth studying</span><h2>{country}</h2><strong>{worldInsight.metric}</strong><p>{worldInsight.copy}</p><div className="policy-note"><b>Could India use this?</b><span>Study the mechanism and evidence first, then test it in Indian state and district conditions.</span></div><div className="country-buttons">{Object.keys(WORLD_INSIGHTS).filter((c) => c !== 'India').map((c) => <button className={country === c ? 'active' : ''} key={c} onClick={() => setCountry(c)}>{c}</button>)}</div><CompactSource source={worldInsight.source || SOURCES.worldBank} live/></aside></section>
+    <section className="world-section-grid"><WorldEducationMap activeCountry={country} onCountrySelect={setCountry} countries={Object.keys(WORLD_INSIGHTS)} insight={worldInsight}/><aside className="world-insight-panel"><span className="section-tag">Ideas worth studying</span><h2>{country}</h2><strong>{worldInsight.metric}</strong><p>{worldInsight.copy}</p><div className="policy-note"><b>Could India use this?</b><span>Study the mechanism and evidence first, then test it in Indian state and district conditions.</span></div><div className="country-buttons">{Object.keys(WORLD_INSIGHTS).filter((c) => c !== 'India').map((c) => <button className={country === c ? 'active' : ''} key={c} onClick={() => setCountry(c)}>{c}</button>)}</div><CompactSource source={worldInsight.source || SOURCES.worldBank} live/></aside></section>
 
     <section className="bottom-insight-grid"><article className="insight-card"><span className="section-tag">Where are the gaps?</span><h2>{focusState} vs available benchmarks</h2><div className="gap-list-modern">{gapRows.map((g) => <div key={g.key}><div><span>{g.label}</span><strong>{g.gap === undefined ? '—' : `${g.gap > 0 ? '+' : ''}${g.gap}${g.key === 'ptr' ? '' : ' pp'}`}</strong></div><div className="gap-rail"><i style={{width:g.gap === undefined ? '0%' : `${Math.min(100,Math.abs(g.gap)*3)}%`}}/></div></div>)}</div></article><article className="insight-card"><span className="section-tag">What could help?</span><h2>Questions worth investigating</h2><ol className="way-forward-list"><li><b>Teacher availability</b><span>Where are classrooms most crowded?</span></li><li><b>Secondary transition</b><span>Where are students leaving before Classes 10–12?</span></li><li><b>Girls’ participation</b><span>Where do persistent participation gaps remain?</span></li><li><b>Learning outcomes</b><span>Are students learning what their grade expects?</span></li></ol></article></section>
 
-    <div className="data-integrity-note"><strong>Data integrity first.</strong> CurioLens selects the latest available official release independently for each metric. If a newer release lacks a value, the engine can use the previous published release; if district/division data is unavailable, a state value may appear only as clearly labelled context. The source and period travel with every metric. {hasStateContext ? 'Some values on this view are state context because finer-geography data is not yet connected.' : ''}</div>
+    {!isStateView && <section className="district-evidence-panel">
+      <div><span className="section-tag">District evidence</span><h2>{district !== 'All districts' ? district : division}</h2><p>CurioLens no longer substitutes a state number into a district or division card. Exact local values appear only when a source actually publishes them.</p></div>
+      <div className="district-evidence-links">
+        <a href="https://www.niti.gov.in/divisions/division/sustainable-development-goal" target="_blank" rel="noreferrer"><strong>NITI Aayog</strong><span>District SDG data where officially covered, plus State/UT SDG data ↗</span></a>
+        <a href="https://www.niti.gov.in/competitive-federalism/overview-sustainable-development-goals" target="_blank" rel="noreferrer"><strong>NITI district context</strong><span>National MPI has district-level poverty data; the NER District SDG Index covers the eight North-Eastern states ↗</span></a>
+      </div>
+      {hasStateContext && <div className="state-context-strip"><b>{stateContext.label || `${focusState} state context`}</b><span>{['schools','students','teachers','ptr'].filter((key) => stateContext.metrics?.[key] !== undefined).map((key) => `${SNAPSHOTS.find((item) => item.key === key)?.label || key}: ${formatValue(key, stateContext.metrics[key])}`).join(' · ')}</span></div>}
+    </section>}
+
+    <div className="data-integrity-note"><strong>Data integrity first.</strong> CurioLens selects the latest available official release independently for each metric. If a newer release lacks a value, the engine can use the previous published release. District/division cards never inherit a state number; state figures are shown only in a separate context strip. The source and period travel with every metric. {hasStateContext ? 'Some values on this view are state context because finer-geography data is not yet connected.' : ''}</div>
   </div>;
 }

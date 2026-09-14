@@ -97,26 +97,70 @@ function SourceLink({ href, children = 'Check source' }) {
 }
 
 export default function ClimateDashboard() {
-  const { metrics: live, status: liveStatus } = useLiveTopicData('climate');
+  const { metrics: live, status: liveStatus, countryName, isIndia } = useLiveTopicData('climate');
   const [stateMetric, setStateMetric] = useState('overall');
   const selectedState = useMemo(() => stateViews[stateMetric], [stateMetric]);
   const cards = metricCards.map((card) => {
     if (card.label === 'Global surface temperature' && live.temperature?.value != null) return { ...card, value: `${Number(live.temperature.value).toFixed(2)}°C`, year: live.temperature.period, source: live.temperature.source, href: live.temperature.sourceUrl };
     if (card.label === 'CO₂ in the atmosphere' && live.co2?.value != null) return { ...card, value: `${Number(live.co2.value).toFixed(2)} ppm`, year: live.co2.period, source: live.co2.source, href: live.co2.sourceUrl };
     if (card.label === 'Methane in the atmosphere' && live.methane?.value != null) return { ...card, value: `${Number(live.methane.value).toFixed(2)} ppb`, year: live.methane.period, source: live.methane.source, href: live.methane.sourceUrl };
-    if (card.label === 'CO₂ per person — India' && live.co2pc?.value != null) return { ...card, value: `${Number(live.co2pc.value).toFixed(2)} t`, year: live.co2pc.period, source: live.co2pc.source, href: live.co2pc.sourceUrl };
+    if (card.label === 'CO₂ per person — India') {
+      if (live.co2pc?.value != null) return { ...card, label: `CO₂ per person — ${countryName}`, value: `${Number(live.co2pc.value).toFixed(2)} t`, year: live.co2pc.period, source: live.co2pc.source, href: live.co2pc.sourceUrl };
+      return { ...card, label: `CO₂ per person — ${countryName}`, value: isIndia ? card.value : '—', year: isIndia ? card.year : 'Latest available', explain: `Latest comparable per-person CO₂ value for ${countryName}.`, source: isIndia ? card.source : 'World Bank', href: isIndia ? card.href : 'https://data.worldbank.org/indicator/EN.ATM.CO2E.PC' };
+    }
     return card;
   });
 
   const globalRanks = [
-    live.epiOverall && { label: 'Environmental Performance Index', value: `#${live.epiOverall.value}`, detail: `Score ${live.epiOverall.score ?? '—'} · ${live.epiOverall.period}`, source: live.epiOverall },
-    live.epiBiodiversity && { label: 'Biodiversity & habitat', value: `#${live.epiBiodiversity.value}`, detail: `EPI sub-index · ${live.epiBiodiversity.period}`, source: live.epiBiodiversity },
-    live.epiAir && { label: 'Air quality', value: `#${live.epiAir.value}`, detail: `EPI sub-index · ${live.epiAir.period}`, source: live.epiAir },
-    live.epiForests && { label: 'Forests', value: `#${live.epiForests.value}`, detail: `EPI sub-index · ${live.epiForests.period}`, source: live.epiForests },
-    live.ccpi && { label: 'Climate Change Performance Index', value: `#${live.ccpi.value}`, detail: `${live.ccpi.period || 'Latest edition'} · mitigation performance`, source: live.ccpi },
-    live.forestShare && { label: 'Forest area', value: `${Number(live.forestShare.value).toFixed(1)}%`, detail: `${live.forestShare.period} · share of India’s land area`, source: live.forestShare },
-    live.renewableElectricity && { label: 'Renewable electricity', value: `${Number(live.renewableElectricity.value).toFixed(1)}%`, detail: `${live.renewableElectricity.period} · renewable share of electricity output`, source: live.renewableElectricity },
-  ].filter(Boolean);
+    {
+      label: 'Environmental Performance Index',
+      value: live.epiOverall?.value != null ? `#${live.epiOverall.value}` : (isIndia ? '#176' : '—'),
+      detail: live.epiOverall?.value != null ? `Score ${live.epiOverall.score ?? '—'} · ${live.epiOverall.period}` : (isIndia ? '2024 · score 27.6 · last verified' : 'Latest EPI country result not available from the live page'),
+      source: live.epiOverall || { source: 'Yale EPI', sourceUrl: 'https://epi.yale.edu/country/2024/IND' },
+    },
+    {
+      label: 'Biodiversity & habitat',
+      value: live.epiBiodiversity?.value != null ? `#${live.epiBiodiversity.value}` : (isIndia ? '#178' : '—'),
+      detail: live.epiBiodiversity?.value != null ? `EPI sub-index · ${live.epiBiodiversity.period}` : (isIndia ? '2024 EPI sub-index · last verified' : 'Latest EPI sub-index checked for the selected country'),
+      source: live.epiBiodiversity || { source: 'Yale EPI', sourceUrl: 'https://epi.yale.edu/country/2024/IND' },
+    },
+    {
+      label: 'Air quality',
+      value: live.epiAir?.value != null ? `#${live.epiAir.value}` : '—',
+      detail: live.epiAir?.value != null ? `EPI sub-index · ${live.epiAir.period}` : 'Newest EPI edition checked live',
+      source: live.epiAir || { source: 'Yale EPI', sourceUrl: 'https://epi.yale.edu/country/2024/IND' },
+    },
+    {
+      label: 'Forests',
+      value: live.epiForests?.value != null ? `#${live.epiForests.value}` : '—',
+      detail: live.epiForests?.value != null ? `EPI sub-index · ${live.epiForests.period}` : 'Newest EPI edition checked live',
+      source: live.epiForests || { source: 'Yale EPI', sourceUrl: 'https://epi.yale.edu/country/2024/IND' },
+    },
+    {
+      label: 'Climate Change Performance Index',
+      value: live.ccpi?.value != null ? `#${live.ccpi.value}` : (isIndia ? '#23' : '—'),
+      detail: live.ccpi?.value != null ? `${live.ccpi.period || 'Latest edition'} · climate-policy performance` : (isIndia ? 'CCPI 2026 · last verified' : 'Latest CCPI country result checked live'),
+      source: live.ccpi || { source: 'CCPI', sourceUrl: 'https://ccpi.org/country/ind/' },
+    },
+    {
+      label: 'Energy Transition Index',
+      value: live.energyTransition?.value != null ? `#${live.energyTransition.value}` : (isIndia ? '#70' : '—'),
+      detail: live.energyTransition?.value != null ? `${live.energyTransition.period || 'Latest edition'}${live.energyTransition.outOf ? ` · of ${live.energyTransition.outOf}` : ''}` : (isIndia ? 'WEF 2026 · of 120 · last verified' : 'Latest Energy Transition Index result checked live'),
+      source: live.energyTransition || { source: 'World Economic Forum', sourceUrl: 'https://www.weforum.org/publications/fostering-effective-energy-transition-2026/' },
+    },
+    {
+      label: 'Forest area',
+      value: live.forestShare?.value != null ? `${Number(live.forestShare.value).toFixed(1)}%` : '—',
+      detail: live.forestShare?.value != null ? `${live.forestShare.period} · share of ${countryName}’s land area` : 'Latest World Bank observation',
+      source: live.forestShare || { source: 'World Bank', sourceUrl: 'https://data.worldbank.org/indicator/AG.LND.FRST.ZS?locations=IN' },
+    },
+    {
+      label: 'Renewable electricity',
+      value: live.renewableElectricity?.value != null ? `${Number(live.renewableElectricity.value).toFixed(1)}%` : '—',
+      detail: live.renewableElectricity?.value != null ? `${live.renewableElectricity.period} · share of electricity output` : 'Latest World Bank observation',
+      source: live.renewableElectricity || { source: 'World Bank', sourceUrl: 'https://data.worldbank.org/indicator/EG.ELC.RNEW.ZS?locations=IN' },
+    },
+  ];
 
   return (
     <div className="climate-data-dashboard">
@@ -136,16 +180,11 @@ export default function ClimateDashboard() {
 
       <section className="live-index-section">
         <div className="live-index-head">
-          <div><span className="section-tag">India in the world</span><h2>Environmental and climate rankings</h2><p>CurioLens reads the newest edition exposed by each source. Rankings are not interchangeable: each index measures a different question.</p></div>
+          <div><span className="section-tag">{countryName} in the world</span><h2>Environmental and climate rankings</h2><p>CurioLens reads the newest edition exposed by each source. Rankings are not interchangeable: each index measures a different question.</p></div>
           <span className={`live-status ${liveStatus}`}>{liveStatus === 'ready' ? 'Live sources checked' : liveStatus === 'loading' ? 'Checking latest sources…' : 'Showing verified fallback where needed'}</span>
         </div>
-        <div className="live-index-grid">
-          {globalRanks.length ? globalRanks.map((item) => <article key={item.label}><span>{item.label}</span><strong>{item.value}</strong><small>{item.detail}</small><SourceLink href={item.source.sourceUrl} children={item.source.source} /></article>) : <>
-            <article><span>Environmental Performance Index</span><strong>#176</strong><small>2024 · score 27.6</small><SourceLink href="https://epi.yale.edu/country/2024/IND" children="Yale EPI" /></article>
-            <article><span>Biodiversity & habitat</span><strong>#178</strong><small>2024 EPI sub-index</small><SourceLink href="https://epi.yale.edu/country/2024/IND" children="Yale EPI" /></article>
-            <article><span>Climate Change Performance Index</span><strong>#23</strong><small>CCPI 2026</small><SourceLink href="https://ccpi.org/country/ind/" children="CCPI" /></article>
-            <article><span>Total forest area</span><strong>#9</strong><small>GFRA 2025 · global rank</small><SourceLink href="https://www.pib.gov.in/PressReleasePage.aspx?PRID=2182269&lang=2&reg=3" children="FAO / PIB" /></article>
-          </>}
+        <div className="live-index-grid stable-index-grid climate-global-grid">
+          {globalRanks.map((item) => <article key={item.label}><span>{item.label}</span><strong>{item.value}</strong><small>{item.detail}</small><SourceLink href={item.source.sourceUrl} children={item.source.source} /></article>)}
         </div>
         <p className="live-index-footnote">Forest rank is based on the latest FAO Global Forest Resources Assessment publication cycle; it is not an annual index. India was also reported 3rd in annual net forest-area gain and 5th among major forest carbon sinks in GFRA 2025.</p>
       </section>
