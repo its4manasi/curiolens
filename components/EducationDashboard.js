@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { IndiaBenchmarkMap, BiharDistrictMap, WorldEducationMap } from './EducationMaps';
 import EvidenceFooter from './EvidenceFooter';
+import SmartSelect from './SmartSelect';
 
 const ALL_STATES = [
   'Andhra Pradesh','Arunachal Pradesh','Assam','Bihar','Chhattisgarh','Goa','Gujarat','Haryana','Himachal Pradesh','Jharkhand','Karnataka','Kerala','Madhya Pradesh','Maharashtra','Manipur','Meghalaya','Mizoram','Nagaland','Odisha','Punjab','Rajasthan','Sikkim','Tamil Nadu','Telangana','Tripura','Uttar Pradesh','Uttarakhand','West Bengal','Delhi','Jammu and Kashmir','Ladakh','Puducherry'
@@ -162,11 +163,11 @@ export default function EducationDashboard() {
           <p>Choose where you live. CurioLens explains the number in simple words first, then shows the official source for anyone who wants to check it.</p>
         </div>
         <div className="toolbar-controls">
-          <label><span>State</span><select value={focusState} onChange={(e) => chooseState(e.target.value)}>{ALL_STATES.map((s) => <option key={s}>{s}</option>)}</select></label>
-          <label className={!localEnabled ? 'is-disabled' : ''}><span>Division</span><select disabled={!localEnabled} value={division} onChange={(e) => chooseDivision(e.target.value)}>{Object.keys(DIVISIONS).map((d) => <option key={d}>{d}</option>)}</select></label>
-          <label className={!localEnabled ? 'is-disabled' : ''}><span>District</span><select disabled={!localEnabled} value={district} onChange={(e) => chooseDistrict(e.target.value)}>{districts.map((d) => <option key={d}>{d}</option>)}</select></label>
-          <label className={!localEnabled ? 'is-disabled' : ''}><span>Area type</span><select disabled={!localEnabled} value={areaType} onChange={(e) => setAreaType(e.target.value)}><option>Urban</option><option>Rural</option></select></label>
-          <label className={!localEnabled ? 'is-disabled' : ''}><span>Local body</span><select disabled={!localEnabled} value={localBodyLabel(areaType, district)} readOnly><option>{localBodyLabel(areaType, district)}</option></select></label>
+          <SmartSelect label="State" value={focusState} options={ALL_STATES} onChange={chooseState} />
+          <SmartSelect label="Division" value={division} options={Object.keys(DIVISIONS)} onChange={chooseDivision} disabled={!localEnabled} />
+          <SmartSelect label="District" value={district} options={districts} onChange={chooseDistrict} disabled={!localEnabled} />
+          <SmartSelect label="Area type" value={areaType} options={['Urban','Rural']} onChange={setAreaType} disabled={!localEnabled} />
+          <SmartSelect label="Local body" value={localBodyLabel(areaType, district)} options={[localBodyLabel(areaType, district)]} onChange={() => {}} disabled={!localEnabled} />
         </div>
         {!localEnabled && <div className="availability-note">Local-body drill-down is currently being wired for Bihar first. State-level selection is already available for the nationwide architecture.</div>}
       </section>
@@ -185,7 +186,7 @@ export default function EducationDashboard() {
 
       <section className="primary-data-grid">
         <article className="data-visual-panel comparison-panel">
-          <div className="panel-topline"><div><span className="section-tag">Compare simply</span><h2>Bihar vs 5 benchmark states</h2><p>Pick one question at a time. The chart keeps the comparison easy to read.</p></div><label className="inline-select"><span>Question</span><select value={metricKey} onChange={(e) => setMetricKey(e.target.value)}>{METRICS.map((m) => <option key={m.key} value={m.key}>{m.label}</option>)}</select></label></div>
+          <div className="panel-topline"><div><span className="section-tag">Compare simply</span><h2>Bihar vs 5 benchmark states</h2><p>Pick one question at a time. The chart keeps the comparison easy to read.</p></div><SmartSelect className="inline-select" label="Question" value={metricKey} options={METRICS.map((m) => ({ value: m.key, label: m.label }))} onChange={setMetricKey} /></div>
           <StateComparisonChart metricKey={metricKey} />
           <div className="chart-explainer"><strong>{metric.label}</strong><span>{metric.plain} Bihar is coral; benchmark states are sea green.</span></div>
           <EvidenceFooter {...metric.source} />

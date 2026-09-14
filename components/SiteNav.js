@@ -1,28 +1,33 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import SmartSelect from './SmartSelect';
+import UiIcon from './UiIcon';
 
 const topics = [
-  ['🎓','Education','/education/'], ['❤️','Health','/health/'], ['👥','Women & Gender','/women/'],
-  ['📈','Development','/development/'], ['🏛️','Democracy','/democracy/'], ['🤝','Welfare','/welfare/'],
-  ['🌿','Climate','/climate/'], ['🪙','Economy','/economy/'], ['🌱','Environment','/environment/'], ['🏙️','Local Bodies','/local-bodies/'],
+  ['education','Education','/education/'], ['health','Health','/health/'], ['women','Women & Gender','/women/'],
+  ['development','Development','/development/'], ['democracy','Democracy','/democracy/'], ['welfare','Welfare','/welfare/'],
+  ['climate','Climate','/climate/'], ['economy','Economy','/economy/'], ['environment','Environment','/environment/'], ['local','Local Bodies','/local-bodies/'],
 ];
 
 function TopicLinks({ mobile = false, onNavigate }) {
   return <div className={mobile ? 'mobile-topic-list' : 'mega-topic-grid'}>
     {topics.map(([icon,label,href]) => <Link href={href} key={href} className="topic-nav-item" onClick={onNavigate}>
-      <span className="topic-nav-icon" aria-hidden="true">{icon}</span><span>{label}</span>{mobile && <b aria-hidden="true">›</b>}
+      <span className="topic-nav-icon"><UiIcon name={icon} size={18}/></span><span>{label}</span>{mobile && <b aria-hidden="true">›</b>}
     </Link>)}
   </div>;
 }
 
 function PlacePicker({ mobile = false, onNavigate }) {
+  const [country, setCountry] = useState('India');
+  const [state, setState] = useState('Bihar');
+  const [district, setDistrict] = useState('All');
   return <div className={mobile ? 'mobile-place-picker' : 'desktop-place-picker'}>
-    <span className="place-picker-title">📍 Choose a place</span>
-    <label><span>Country</span><select defaultValue="India"><option>India</option><option disabled>More countries soon</option></select></label>
-    <label><span>State</span><select defaultValue="Bihar"><option>Bihar</option><option>Punjab</option><option>Kerala</option><option>Tamil Nadu</option><option>Maharashtra</option><option>Himachal Pradesh</option></select></label>
-    <label><span>District</span><select defaultValue="All"><option>All</option><option>Patna</option><option>Muzaffarpur</option><option>Gaya</option></select></label>
+    <span className="place-picker-title"><UiIcon name="pin" size={18}/> Choose a place</span>
+    <SmartSelect label="Country" value={country} options={['India']} onChange={setCountry} />
+    <SmartSelect label="State" value={state} options={['Bihar','Punjab','Kerala','Tamil Nadu','Maharashtra','Himachal Pradesh']} onChange={setState} />
+    <SmartSelect label="District" value={district} options={['All','Patna','Muzaffarpur','Gaya']} onChange={setDistrict} />
     <Link className="place-go" href="/education/" onClick={onNavigate}>Explore this place →</Link>
   </div>;
 }
@@ -31,6 +36,8 @@ export default function SiteNav() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [topicOpen, setTopicOpen] = useState(false);
   const [placeOpen, setPlaceOpen] = useState(false);
+  const topicTimer = useRef(null);
+  const placeTimer = useRef(null);
 
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? 'hidden' : '';
@@ -38,59 +45,77 @@ export default function SiteNav() {
   }, [mobileOpen]);
 
   useEffect(() => {
-    const onKey = (e) => e.key === 'Escape' && setMobileOpen(false);
+    const onKey = (e) => {
+      if (e.key === 'Escape') { setMobileOpen(false); setTopicOpen(false); setPlaceOpen(false); }
+    };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
+  const delayedClose = (ref, setter) => {
+    clearTimeout(ref.current);
+    ref.current = setTimeout(() => setter(false), 160);
+  };
+  const keepOpen = (ref, setter) => { clearTimeout(ref.current); setter(true); };
   const closeMobile = () => setMobileOpen(false);
 
-  return <header className="v8-header-wrap">
-    <div className="v8-header">
-      <Link className="v8-brand" href="/" aria-label="CurioLens home">
-        <span className="v8-brand-mark">◉</span><span><b>CurioLens</b><small>People · Places · Possibilities</small></span>
+  return <header className="v9-header-wrap">
+    <div className="v9-header">
+      <Link className="v9-brand" href="/" aria-label="CurioLens home">
+        <span className="v9-brand-mark" aria-hidden="true"><span/></span>
+        <span><b>CurioLens</b><small>People · Places · Possibilities</small></span>
       </Link>
 
-      <nav className="v8-desktop-nav" aria-label="Main navigation">
-        <Link className="nav-pill active" href="/">⌂ <span>Home</span></Link>
-        <div className="nav-popover" onMouseEnter={() => setTopicOpen(true)} onMouseLeave={() => setTopicOpen(false)}>
-          <button className="nav-pill nav-button" type="button" aria-expanded={topicOpen} onClick={() => setTopicOpen(v => !v)}>▦ <span>Topics</span>⌄</button>
-          {topicOpen && <div className="mega-menu">
-            <div className="mega-copy"><span className="menu-kicker">Explore public-interest topics</span><h3>Start with what matters to you.</h3><TopicLinks /></div>
-            <Link className="mega-feature" href="/climate/"><div className="mega-feature-art" aria-hidden="true"><span>☀</span><i>♨</i><b>↗</b></div><small>Featured topic</small><strong>Explore Climate</strong><p>What contributes, what is changing, who is affected and what can help.</p><em>View climate →</em></Link>
+      <nav className="v9-desktop-nav" aria-label="Main navigation">
+        <Link className="v9-nav-link is-active" href="/"><UiIcon name="home" size={16}/> <span>Home</span></Link>
+        <div className="v9-nav-popover" onMouseEnter={() => keepOpen(topicTimer,setTopicOpen)} onMouseLeave={() => delayedClose(topicTimer,setTopicOpen)}>
+          <button className="v9-nav-link v9-nav-button" type="button" aria-expanded={topicOpen} onClick={() => setTopicOpen(v => !v)}><UiIcon name="topics" size={16}/><span>Topics</span><span className="v9-chevron">⌄</span></button>
+          {topicOpen && <div className="v9-mega-menu" onMouseEnter={() => keepOpen(topicTimer,setTopicOpen)} onMouseLeave={() => delayedClose(topicTimer,setTopicOpen)}>
+            <div className="v9-mega-main">
+              <span className="menu-kicker">Explore topics</span>
+              <h3>Start with what matters to you.</h3>
+              <TopicLinks />
+            </div>
+            <Link className="v9-mega-feature" href="/climate/">
+              <span className="v9-feature-icon"><UiIcon name="climate" size={30}/></span>
+              <small>Featured topic</small><strong>Climate</strong>
+              <p>Causes, changes, people affected and practical responses.</p><em>Explore climate →</em>
+            </Link>
           </div>}
         </div>
-        <Link className="nav-pill" href="/education/#compare">▥ <span>Compare</span></Link>
-        <Link className="nav-pill" href="/education/#maps">⌖ <span>Maps</span></Link>
-        <Link className="nav-pill" href="/articles/">▣ <span>Stories</span></Link>
-        <Link className="nav-pill" href="/sources/">▤ <span>Sources</span></Link>
+        <Link className="v9-nav-link" href="/education/#compare"><UiIcon name="compare" size={16}/><span>Compare</span></Link>
+        <Link className="v9-nav-link" href="/education/#maps"><UiIcon name="map" size={16}/><span>Maps</span></Link>
+        <Link className="v9-nav-link" href="/articles/"><UiIcon name="stories" size={16}/><span>Stories</span></Link>
+        <Link className="v9-nav-link" href="/sources/"><UiIcon name="sources" size={16}/><span>Sources</span></Link>
       </nav>
 
-      <div className="v8-header-actions">
-        <Link className="search-button" href="/articles/" aria-label="Search and stories">⌕</Link>
-        <div className="nav-popover place-popover" onMouseEnter={() => setPlaceOpen(true)} onMouseLeave={() => setPlaceOpen(false)}>
-          <button className="place-button" type="button" aria-expanded={placeOpen} onClick={() => setPlaceOpen(v => !v)}>📍 <span>Select Place</span>⌄</button>
-          {placeOpen && <PlacePicker />}
+      <div className="v9-header-actions">
+        <Link className="v9-icon-button" href="/articles/" aria-label="Search and stories"><UiIcon name="search" size={19}/></Link>
+        <div className="v9-nav-popover v9-place-popover" onMouseEnter={() => keepOpen(placeTimer,setPlaceOpen)} onMouseLeave={() => delayedClose(placeTimer,setPlaceOpen)}>
+          <button className="v9-place-button" type="button" aria-expanded={placeOpen} onClick={() => setPlaceOpen(v => !v)}><UiIcon name="pin" size={17}/><span>Select place</span><span>⌄</span></button>
+          {placeOpen && <div onMouseEnter={() => keepOpen(placeTimer,setPlaceOpen)} onMouseLeave={() => delayedClose(placeTimer,setPlaceOpen)}><PlacePicker /></div>}
         </div>
-        <button className="mobile-menu-button" type="button" aria-label="Open menu" aria-expanded={mobileOpen} onClick={() => setMobileOpen(true)}>☰</button>
+        <button className="v9-mobile-menu-button" type="button" aria-label="Open menu" aria-expanded={mobileOpen} onClick={() => setMobileOpen(true)}><UiIcon name="menu" size={22}/></button>
       </div>
     </div>
+
+    <div className="v9-mobile-placebar"><UiIcon name="pin" size={16}/><span>India · Choose your place</span><button type="button" onClick={() => setMobileOpen(true)}>Change</button></div>
 
     {mobileOpen && <div className="mobile-nav-overlay" role="presentation" onMouseDown={(e) => { if (e.target === e.currentTarget) closeMobile(); }}>
       <aside className="mobile-drawer" role="dialog" aria-modal="true" aria-label="CurioLens menu">
         <div className="mobile-drawer-head">
-          <Link className="v8-brand" href="/" onClick={closeMobile}><span className="v8-brand-mark">◉</span><span><b>CurioLens</b><small>People · Places · Possibilities</small></span></Link>
-          <button className="mobile-close-button" type="button" aria-label="Close menu" onClick={closeMobile}>×</button>
+          <Link className="v9-brand" href="/" onClick={closeMobile}><span className="v9-brand-mark"><span/></span><span><b>CurioLens</b><small>People · Places · Possibilities</small></span></Link>
+          <button className="mobile-close-button" type="button" aria-label="Close menu" onClick={closeMobile}><UiIcon name="close" size={22}/></button>
         </div>
         <div className="mobile-drawer-scroll">
-          <Link className="mobile-primary-link" href="/" onClick={closeMobile}>⌂ Home</Link>
-          <details className="mobile-nested"><summary>▦ Topics <b>⌄</b></summary><TopicLinks mobile onNavigate={closeMobile}/></details>
-          <Link className="mobile-menu-link" href="/education/#compare" onClick={closeMobile}>▥ Compare</Link>
-          <Link className="mobile-menu-link" href="/education/#maps" onClick={closeMobile}>⌖ Maps</Link>
-          <Link className="mobile-menu-link" href="/articles/" onClick={closeMobile}>▣ Stories</Link>
-          <Link className="mobile-menu-link" href="/sources/" onClick={closeMobile}>▤ Sources</Link>
-          <details className="mobile-nested place-mobile-details"><summary>📍 Choose a place <b>⌄</b></summary><PlacePicker mobile onNavigate={closeMobile}/></details>
-          <Link className="mobile-menu-link muted-mobile-link" href="/about/" onClick={closeMobile}>ⓘ About</Link>
+          <Link className="mobile-primary-link" href="/" onClick={closeMobile}><UiIcon name="home" size={20}/> Home</Link>
+          <details className="mobile-nested"><summary><span><UiIcon name="topics" size={20}/> Topics</span><b>⌄</b></summary><TopicLinks mobile onNavigate={closeMobile}/></details>
+          <Link className="mobile-menu-link" href="/education/#compare" onClick={closeMobile}><UiIcon name="compare" size={20}/> Compare</Link>
+          <Link className="mobile-menu-link" href="/education/#maps" onClick={closeMobile}><UiIcon name="map" size={20}/> Maps</Link>
+          <Link className="mobile-menu-link" href="/articles/" onClick={closeMobile}><UiIcon name="stories" size={20}/> Stories</Link>
+          <Link className="mobile-menu-link" href="/sources/" onClick={closeMobile}><UiIcon name="sources" size={20}/> Sources</Link>
+          <details className="mobile-nested place-mobile-details"><summary><span><UiIcon name="pin" size={20}/> Choose a place</span><b>⌄</b></summary><PlacePicker mobile onNavigate={closeMobile}/></details>
+          <Link className="mobile-menu-link muted-mobile-link" href="/about/" onClick={closeMobile}>About</Link>
         </div>
       </aside>
     </div>}
