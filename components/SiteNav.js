@@ -6,9 +6,14 @@ import SmartSelect from './SmartSelect';
 import UiIcon from './UiIcon';
 
 const topics = [
-  ['education','Education','/education/'], ['health','Health','/health/'], ['women','Women & Gender','/women/'],
-  ['development','Development','/development/'], ['democracy','Democracy','/democracy/'], ['welfare','Welfare','/welfare/'],
-  ['climate','Climate','/climate/'], ['economy','Economy','/economy/'], ['environment','Environment','/environment/'], ['local','Local Bodies','/local-bodies/'],
+  ['education','Education','/education/'],
+  ['health','Health','/health/'],
+  ['women','Women & Society','/women/'],
+  ['economy','Economy & Development','/development/'],
+  ['democracy','Democracy & Governance','/democracy/'],
+  ['climate','Climate & Environment','/climate/'],
+  ['science','Science','/science/'],
+  ['space','Space & Technology','/space-tech/'],
 ];
 
 function TopicLinks({ mobile = false, onNavigate }) {

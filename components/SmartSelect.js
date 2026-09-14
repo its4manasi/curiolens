@@ -36,7 +36,11 @@ export default function SmartSelect({ label, value, options = [], onChange, disa
         onClick={() => !disabled && setOpen((current) => !current)}
       >
         <span className="smart-select-value" title={String(value)}>{value}</span>
-        <span className="smart-select-chevron" aria-hidden="true">⌄</span>
+        <span className="smart-select-chevron" aria-hidden="true">
+          <svg viewBox="0 0 20 20" focusable="false" aria-hidden="true">
+            <path d="M5.5 7.5 10 12l4.5-4.5" />
+          </svg>
+        </span>
       </button>
 
       {open && !disabled && (
@@ -64,7 +68,11 @@ export default function SmartSelect({ label, value, options = [], onChange, disa
                     }}
                   >
                     <span>{option.label}</span>
-                    {selected && <b aria-hidden="true">✓</b>}
+                    {selected && (
+                      <span className="smart-select-check" aria-hidden="true">
+                        <svg viewBox="0 0 20 20" focusable="false"><path d="m5 10.2 3.1 3.1L15.4 6" /></svg>
+                      </span>
+                    )}
                   </button>
                 );
               })}

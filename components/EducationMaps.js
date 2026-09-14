@@ -2,12 +2,21 @@
 
 import { useEffect, useMemo, useState } from 'react';
 
-const INDIA_GEOJSON = 'https://cdn.jsdelivr.net/gh/udit-001/india-maps-data@2884453/geojson/india.geojson';
-const BIHAR_GEOJSON = 'https://cdn.jsdelivr.net/gh/udit-001/india-maps-data@2884453/geojson/states/bihar.geojson';
+const MAP_VERSION = '2884453';
+const INDIA_GEOJSON = `https://cdn.jsdelivr.net/gh/udit-001/india-maps-data@${MAP_VERSION}/geojson/india.geojson`;
 const WORLD_GEOJSON = 'https://cdn.jsdelivr.net/gh/johan/world.geo.json@master/countries.geo.json';
 
+export const STATE_SLUGS = {
+  'Andaman and Nicobar Islands':'andaman-and-nicobar-islands','Andhra Pradesh':'andhra-pradesh','Arunachal Pradesh':'arunachal-pradesh',Assam:'assam',Bihar:'bihar',Chandigarh:'chandigarh',Chhattisgarh:'chhattisgarh',Delhi:'delhi','Dadra and Nagar Haveli and Daman and Diu':'dnh-and-dd',Goa:'goa',Gujarat:'gujarat',Haryana:'haryana','Himachal Pradesh':'himachal-pradesh','Jammu and Kashmir':'jammu-and-kashmir',Jharkhand:'jharkhand',Karnataka:'karnataka',Kerala:'kerala',Ladakh:'ladakh',Lakshadweep:'lakshadweep','Madhya Pradesh':'madhya-pradesh',Maharashtra:'maharashtra',Manipur:'manipur',Meghalaya:'meghalaya',Mizoram:'mizoram',Nagaland:'nagaland',Odisha:'odisha',Puducherry:'puducherry',Punjab:'punjab',Rajasthan:'rajasthan',Sikkim:'sikkim','Tamil Nadu':'tamil-nadu',Telangana:'telangana',Tripura:'tripura','Uttar Pradesh':'uttar-pradesh',Uttarakhand:'uttarakhand','West Bengal':'west-bengal'
+};
+
+export function stateDistrictGeoJsonUrl(state) {
+  const slug = STATE_SLUGS[state];
+  return slug ? `https://cdn.jsdelivr.net/gh/udit-001/india-maps-data@${MAP_VERSION}/geojson/states/${slug}.geojson` : null;
+}
+
 const norm = (value = '') => value.toString().toLowerCase().replace(/[^a-z0-9]/g, '');
-const featureName = (feature) => {
+export const featureName = (feature) => {
   const p = feature?.properties || {};
   return p.st_nm || p.ST_NM || p.State_Name || p.state || p.STATE || p.NAME_1 || p.name || p.NAME || p.district || p.DISTRICT || p.District || p.dtname || p.DT_NAME || p.NAME_2 || 'Unknown';
 };
@@ -42,24 +51,23 @@ function pathForGeometry(geometry, bounds, width, height, pad = 8) {
   return '';
 }
 
-function GeoMap({ url, ariaLabel, selected = [], focus = '', active = '', onSelect, divisionDistricts = [], world = false }) {
+function GeoMap({ url, ariaLabel, selected = [], focus = '', active = '', onSelect, world = false }) {
   const [features, setFeatures] = useState([]);
   const [hover, setHover] = useState('');
   const [status, setStatus] = useState('loading');
 
   useEffect(() => {
     let alive = true;
-    fetch(url)
-      .then((r) => {
-        if (!r.ok) throw new Error('Map request failed');
-        return r.json();
-      })
-      .then((json) => {
-        if (!alive) return;
-        setFeatures(json.features || []);
-        setStatus('ready');
-      })
-      .catch(() => alive && setStatus('error'));
+    if (!url) { setStatus('error'); return () => {}; }
+    setStatus('loading');
+    fetch(url).then((r) => {
+      if (!r.ok) throw new Error('Map request failed');
+      return r.json();
+    }).then((json) => {
+      if (!alive) return;
+      setFeatures(json.features || []);
+      setStatus('ready');
+    }).catch(() => alive && setStatus('error'));
     return () => { alive = false; };
   }, [url]);
 
@@ -67,7 +75,6 @@ function GeoMap({ url, ariaLabel, selected = [], focus = '', active = '', onSele
   const height = world ? 330 : 420;
   const bounds = useMemo(() => boundsFor(features), [features]);
   const selectedNorm = new Set(selected.map(norm));
-  const divisionNorm = new Set(divisionDistricts.map(norm));
 
   if (status === 'loading') return <div className="map-loading">Loading map…</div>;
   if (status === 'error') return <div className="map-loading map-error">Map could not load. The rest of the dashboard still works.</div>;
@@ -81,22 +88,8 @@ function GeoMap({ url, ariaLabel, selected = [], focus = '', active = '', onSele
           const isFocus = key === norm(focus);
           const isActive = key === norm(active);
           const isSelected = selectedNorm.has(key);
-          const isDivision = divisionNorm.has(key);
-          const classNames = ['geo-shape', isSelected ? 'is-benchmark' : '', isFocus ? 'is-focus' : '', isActive ? 'is-active' : '', isDivision ? 'is-division' : ''].filter(Boolean).join(' ');
-          return (
-            <path
-              key={`${key}-${index}`}
-              d={pathForGeometry(feature.geometry, bounds, width, height, world ? 4 : 10)}
-              className={classNames}
-              onMouseEnter={() => setHover(name)}
-              onMouseLeave={() => setHover('')}
-              onClick={() => onSelect?.(name)}
-              tabIndex={onSelect ? 0 : -1}
-              onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && onSelect) onSelect(name); }}
-            >
-              <title>{name}</title>
-            </path>
-          );
+          const classNames = ['geo-shape', isSelected ? 'is-benchmark' : '', isFocus ? 'is-focus' : '', isActive ? 'is-active' : ''].filter(Boolean).join(' ');
+          return <path key={`${key}-${index}`} d={pathForGeometry(feature.geometry, bounds, width, height, world ? 4 : 10)} className={classNames} onMouseEnter={() => setHover(name)} onMouseLeave={() => setHover('')} onClick={() => onSelect?.(name)} tabIndex={onSelect ? 0 : -1} onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && onSelect) onSelect(name); }}><title>{name}</title></path>;
         })}
       </svg>
       <div className={`map-tooltip ${hover ? 'is-visible' : ''}`}>{hover || 'Hover over the map'}</div>
@@ -105,40 +98,14 @@ function GeoMap({ url, ariaLabel, selected = [], focus = '', active = '', onSele
 }
 
 export function IndiaBenchmarkMap({ focusState, onStateSelect, benchmarkStates }) {
-  return (
-    <section className="visual-card india-map-card">
-      <div className="visual-card-head">
-        <div><span className="section-tag">India comparison</span><h3>{focusState} and benchmark states</h3></div>
-        <span className="tiny-pill">Click a state</span>
-      </div>
-      <GeoMap url={INDIA_GEOJSON} ariaLabel="Interactive map of Indian states" selected={benchmarkStates} focus={focusState} active={focusState} onSelect={onStateSelect} />
-      <div className="map-legend"><span><i className="legend-dot focus" /> Focus state</span><span><i className="legend-dot benchmark" /> Benchmark state</span><span><i className="legend-dot neutral" /> Other states</span></div>
-    </section>
-  );
+  return <section className="visual-card india-map-card"><div className="visual-card-head"><div><span className="section-tag">India comparison</span><h3>{focusState} and benchmark states</h3></div><span className="tiny-pill">Click a state</span></div><GeoMap url={INDIA_GEOJSON} ariaLabel="Interactive map of Indian states" selected={benchmarkStates} focus={focusState} active={focusState} onSelect={onStateSelect}/><div className="map-legend"><span><i className="legend-dot focus"/> Selected state</span><span><i className="legend-dot benchmark"/> Benchmark</span><span><i className="legend-dot neutral"/> Other states</span></div></section>;
 }
 
-export function BiharDistrictMap({ district, onDistrictSelect, divisionDistricts = [] }) {
-  return (
-    <section className="visual-card bihar-map-card">
-      <div className="visual-card-head">
-        <div><span className="section-tag">Bihar drill-down</span><h3>Districts and local areas</h3></div>
-        <span className="tiny-pill">{district}</span>
-      </div>
-      <GeoMap url={BIHAR_GEOJSON} ariaLabel="Interactive map of Bihar districts" active={district} divisionDistricts={divisionDistricts} onSelect={onDistrictSelect} />
-      <p className="micro-copy">Click any district to update the selector. The highlighted division helps you move from division → district → urban/rural → local body.</p>
-    </section>
-  );
+export function StateDistrictMap({ state, district, onDistrictSelect }) {
+  const url = stateDistrictGeoJsonUrl(state);
+  return <section className="visual-card state-district-map-card"><div className="visual-card-head"><div><span className="section-tag">District view</span><h3>{state} districts</h3></div><span className="tiny-pill">{district === 'All districts' ? 'State overview' : district}</span></div><GeoMap url={url} ariaLabel={`Interactive map of ${state} districts`} active={district === 'All districts' ? '' : district} onSelect={onDistrictSelect}/><p className="micro-copy">Choose a district on the map or from the selector. CurioLens only presents district-level values when the official source supports that geography.</p></section>;
 }
 
 export function WorldEducationMap({ activeCountry, onCountrySelect, countries }) {
-  return (
-    <section className="visual-card world-map-card">
-      <div className="visual-card-head">
-        <div><span className="section-tag">World context</span><h3>India and comparable countries</h3></div>
-        <span className="tiny-pill">Click a country</span>
-      </div>
-      <GeoMap url={WORLD_GEOJSON} ariaLabel="Interactive world map" selected={countries} focus="India" active={activeCountry} onSelect={onCountrySelect} world />
-      <p className="micro-copy">Country comparisons are kept separate from state comparisons. They are used to find ideas worth studying, not to claim that one country can simply copy another.</p>
-    </section>
-  );
+  return <section className="visual-card world-map-card"><div className="visual-card-head"><div><span className="section-tag">World context</span><h3>India and comparable countries</h3></div><span className="tiny-pill">Click a country</span></div><GeoMap url={WORLD_GEOJSON} ariaLabel="Interactive world map" selected={countries} focus="India" active={activeCountry} onSelect={onCountrySelect} world/><p className="micro-copy">Country comparisons are kept separate from state comparisons. They are prompts for learning, not proof that one place can simply copy another.</p></section>;
 }

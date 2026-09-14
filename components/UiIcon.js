@@ -21,6 +21,8 @@ export default function UiIcon({ name, size = 20, className = '' }) {
     economy: <><circle cx="12" cy="12" r="8"/><path d="M15 8.5c-.7-.8-1.7-1.2-3-1.2-1.7 0-3 1-3 2.3 0 3.3 6 1.5 6 4.7 0 1.4-1.3 2.4-3.2 2.4-1.4 0-2.6-.5-3.3-1.4M12 5.5v13"/></>,
     environment: <><path d="M5 20c2-7 7-12 14-15 0 7-4 13-11 13"/><path d="M5 20c4-3 8-6 12-8"/></>,
     local: <><path d="M4 20V8l8-4 8 4v12"/><path d="M8 20v-5h8v5M8 10h1M12 10h1M16 10h1"/></>,
+    science: <><path d="M9 3h6"/><path d="M10 3v5l-4.5 7.6A3.5 3.5 0 0 0 8.5 21h7a3.5 3.5 0 0 0 3-5.4L14 8V3"/><path d="M8 15h8"/><circle cx="11" cy="12" r="1"/></>,
+    space: <><path d="M14.5 4.5c3.4-1.1 5-1 5-1s.1 1.6-1 5c-1.2 3.7-4.5 7-8.3 8.3l-3 1 1-3C9.5 11 12.8 5.7 14.5 4.5Z"/><path d="m9.5 14.5-4 4"/><path d="M7 8 4 9l-1 3 4 1"/><path d="m15 17 1 4 3-1 1-3-3-2"/><circle cx="15.3" cy="8.7" r="1.3"/></>,
   };
   return <svg {...common}>{icons[name] || icons.topics}</svg>;
 }
