@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 
-const MAP_VERSION = '2884453';
+const MAP_VERSION = 'main';
 const INDIA_GEOJSON = `https://cdn.jsdelivr.net/gh/udit-001/india-maps-data@${MAP_VERSION}/geojson/india.geojson`;
 const WORLD_GEOJSON = 'https://cdn.jsdelivr.net/gh/johan/world.geo.json@master/countries.geo.json';
 
@@ -19,6 +19,11 @@ const norm = (value = '') => value.toString().toLowerCase().replace(/[^a-z0-9]/g
 export const featureName = (feature) => {
   const p = feature?.properties || {};
   return p.st_nm || p.ST_NM || p.State_Name || p.state || p.STATE || p.NAME_1 || p.name || p.NAME || p.district || p.DISTRICT || p.District || p.dtname || p.DT_NAME || p.NAME_2 || 'Unknown';
+};
+
+export const districtFeatureName = (feature) => {
+  const p = feature?.properties || {};
+  return p.district || p.DISTRICT || p.District || p.dtname || p.DT_NAME || p.NAME_2 || p.district_name || p.DISTRICT_NAME || p.name || p.NAME || 'Unknown';
 };
 
 function allPoints(geometry) {
@@ -51,9 +56,10 @@ function pathForGeometry(geometry, bounds, width, height, pad = 8) {
   return '';
 }
 
-function GeoMap({ url, ariaLabel, selected = [], focus = '', active = '', onSelect, world = false }) {
+function GeoMap({ url, ariaLabel, selected = [], focus = '', active = '', onSelect, world = false, nameAccessor = featureName }) {
   const [features, setFeatures] = useState([]);
   const [hover, setHover] = useState('');
+  const [pointer, setPointer] = useState({ x: 0, y: 0 });
   const [status, setStatus] = useState('loading');
 
   useEffect(() => {
@@ -83,16 +89,22 @@ function GeoMap({ url, ariaLabel, selected = [], focus = '', active = '', onSele
     <div className="geo-map-wrap">
       <svg className={`geo-map-svg ${world ? 'is-world' : ''}`} viewBox={`0 0 ${width} ${height}`} role="img" aria-label={ariaLabel}>
         {features.map((feature, index) => {
-          const name = featureName(feature);
+          const name = nameAccessor(feature);
           const key = norm(name);
           const isFocus = key === norm(focus);
           const isActive = key === norm(active);
           const isSelected = selectedNorm.has(key);
           const classNames = ['geo-shape', isSelected ? 'is-benchmark' : '', isFocus ? 'is-focus' : '', isActive ? 'is-active' : ''].filter(Boolean).join(' ');
-          return <path key={`${key}-${index}`} d={pathForGeometry(feature.geometry, bounds, width, height, world ? 4 : 10)} className={classNames} onMouseEnter={() => setHover(name)} onMouseLeave={() => setHover('')} onClick={() => onSelect?.(name)} tabIndex={onSelect ? 0 : -1} onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && onSelect) onSelect(name); }}><title>{name}</title></path>;
+          const moveTooltip = (e) => {
+            const wrap = e.currentTarget.ownerSVGElement?.parentElement;
+            if (!wrap) return;
+            const rect = wrap.getBoundingClientRect();
+            setPointer({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+          };
+          return <path key={`${key}-${index}`} d={pathForGeometry(feature.geometry, bounds, width, height, world ? 4 : 10)} className={classNames} onMouseEnter={(e) => { setHover(name); moveTooltip(e); }} onMouseMove={moveTooltip} onMouseLeave={() => setHover('')} onClick={() => onSelect?.(name)} tabIndex={onSelect ? 0 : -1} onFocus={() => setHover(name)} onBlur={() => setHover('')} onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && onSelect) onSelect(name); }}><title>{name}</title></path>;
         })}
       </svg>
-      <div className={`map-tooltip ${hover ? 'is-visible' : ''}`}>{hover || 'Hover over the map'}</div>
+      <div className={`map-tooltip ${hover ? 'is-visible' : ''}`} style={hover ? { left: pointer.x, top: pointer.y } : undefined}>{hover || 'Hover over the map'}</div>
     </div>
   );
 }
@@ -103,7 +115,7 @@ export function IndiaBenchmarkMap({ focusState, onStateSelect, benchmarkStates }
 
 export function StateDistrictMap({ state, district, onDistrictSelect }) {
   const url = stateDistrictGeoJsonUrl(state);
-  return <section className="visual-card state-district-map-card"><div className="visual-card-head"><div><span className="section-tag">District view</span><h3>{state} districts</h3></div><span className="tiny-pill">{district === 'All districts' ? 'State overview' : district}</span></div><GeoMap url={url} ariaLabel={`Interactive map of ${state} districts`} active={district === 'All districts' ? '' : district} onSelect={onDistrictSelect}/><p className="micro-copy">Choose a district on the map or from the selector. CurioLens only presents district-level values when the official source supports that geography.</p></section>;
+  return <section className="visual-card state-district-map-card"><div className="visual-card-head"><div><span className="section-tag">District view</span><h3>{state} districts</h3></div><span className="tiny-pill">{district === 'All districts' ? 'State overview' : district}</span></div><GeoMap url={url} ariaLabel={`Interactive map of ${state} districts`} active={district === 'All districts' ? '' : district} onSelect={onDistrictSelect} nameAccessor={districtFeatureName}/><p className="micro-copy">Choose a district on the map or from the selector. CurioLens only presents district-level values when the official source supports that geography.</p></section>;
 }
 
 export function WorldEducationMap({ activeCountry, onCountrySelect, countries }) {

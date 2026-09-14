@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { IndiaBenchmarkMap, StateDistrictMap, WorldEducationMap, STATE_SLUGS, stateDistrictGeoJsonUrl, featureName } from './EducationMaps';
+import { IndiaBenchmarkMap, StateDistrictMap, WorldEducationMap, STATE_SLUGS } from './EducationMaps';
 import SmartSelect from './SmartSelect';
 
 const ALL_STATES = Object.keys(STATE_SLUGS);
@@ -9,19 +9,19 @@ const BENCHMARKS = ['Punjab','Kerala','Himachal Pradesh','Tamil Nadu','Maharasht
 
 const SOURCES = {
   census: { name: 'Census of India', href: 'https://censusindia.gov.in/', period: 'Population & literacy' },
-  udise: { name: 'UDISE+', href: 'https://www.education.gov.in/udise-plus', period: 'School education' },
+  udise: { name: 'UDISE+ 2023-24', href: 'https://www.education.gov.in/sites/upload_files/mhrd/files/statistics-new/udise_report_nep_23_24.pdf', period: 'School education' },
   aishe: { name: 'AISHE', href: 'https://aishe.gov.in/', period: 'Higher education' },
   worldBank: { name: 'World Bank', href: 'https://data.worldbank.org/topic/education', period: 'Global comparison' },
 };
 
-// Prototype values remain only for the original benchmark set. They are never shown as district values.
+// Benchmark-only context for indicators that are not yet available nationwide from the connected API.
 const STATE_DATA = {
-  Bihar: { literacy: 62, ptr: 30, girls: 49, secondary: 52, higherEd: 14, population: '13.1 cr', schools: '1.2 lakh', students: '2.4 cr', teachers: '8.1 lakh' },
-  Punjab: { literacy: 77, ptr: 18, girls: 52, secondary: 78, higherEd: 28 },
-  Kerala: { literacy: 96, ptr: 16, girls: 49, secondary: 83, higherEd: 32 },
-  'Himachal Pradesh': { literacy: 84, ptr: 17, girls: 48, secondary: 74, higherEd: 26 },
-  'Tamil Nadu': { literacy: 80, ptr: 20, girls: 51, secondary: 77, higherEd: 27 },
-  Maharashtra: { literacy: 82, ptr: 22, girls: 48, secondary: 73, higherEd: 24 },
+  Bihar: { literacy: 62, girls: 49, secondary: 52, higherEd: 14 },
+  Punjab: { literacy: 77, girls: 52, secondary: 78, higherEd: 28 },
+  Kerala: { literacy: 96, girls: 49, secondary: 83, higherEd: 32 },
+  'Himachal Pradesh': { literacy: 84, girls: 48, secondary: 74, higherEd: 26 },
+  'Tamil Nadu': { literacy: 80, girls: 51, secondary: 77, higherEd: 27 },
+  Maharashtra: { literacy: 82, girls: 48, secondary: 73, higherEd: 24 },
 };
 
 const METRICS = [
@@ -33,12 +33,12 @@ const METRICS = [
 ];
 
 const SNAPSHOTS = [
-  { key: 'population', label: 'Population', note: 'People living here', source: SOURCES.census },
   { key: 'schools', label: 'Schools', note: 'Recognised schools', source: SOURCES.udise },
   { key: 'students', label: 'Students', note: 'Children enrolled', source: SOURCES.udise },
   { key: 'teachers', label: 'Teachers', note: 'Teachers in schools', source: SOURCES.udise },
-  { key: 'literacy', label: 'Can read and write', note: 'Literacy', source: SOURCES.census, suffix: '%' },
-  { key: 'girls', label: 'Girls among students', note: 'Share of students', source: SOURCES.udise, suffix: '%' },
+  { key: 'ptr', label: 'Students per teacher', note: 'Pupil-teacher ratio', source: SOURCES.udise },
+  { key: 'avgStudentsPerSchool', label: 'Students per school', note: 'Average enrolment per school', source: SOURCES.udise },
+  { key: 'avgTeachersPerSchool', label: 'Teachers per school', note: 'Average teachers per school', source: SOURCES.udise },
 ];
 
 const WORLD_INSIGHTS = {
@@ -99,8 +99,8 @@ function CompactSource({ source, live }) {
   return <div className="compact-source"><span>{live ? source.name : `Planned: ${source.name}`}</span><a href={source.href} target="_blank" rel="noreferrer">Verify ↗</a></div>;
 }
 
-function CompactMetricCard({ item, data, live }) {
-  return <article className="compact-metric-card"><div className="compact-metric-top"><span>{item.label}</span><strong>{formatValue(item.key, data?.[item.key], item.suffix || '')}</strong><p>{item.note}</p></div><CompactSource source={item.source} live={live && data?.[item.key] !== undefined}/></article>;
+function CompactMetricCard({ item, data, live, contextLabel }) {
+  return <article className="compact-metric-card"><div className="compact-metric-top"><span>{item.label}</span><strong>{formatValue(item.key, data?.[item.key], item.suffix || '')}</strong><p>{contextLabel || item.note}</p></div><CompactSource source={item.source} live={live && data?.[item.key] !== undefined}/></article>;
 }
 
 function StateComparisonChart({ metricKey, focusState, focusData }) {
@@ -128,39 +128,66 @@ function StateComparisonChart({ metricKey, focusState, focusData }) {
 
 export default function EducationDashboard() {
   const [focusState, setFocusState] = useState('Bihar');
+  const [division, setDivision] = useState('All divisions');
+  const [divisions, setDivisions] = useState([]);
   const [district, setDistrict] = useState('All districts');
   const [districts, setDistricts] = useState(['All districts']);
   const [districtStatus, setDistrictStatus] = useState('loading');
-  const [metricKey, setMetricKey] = useState('literacy');
+  const [metricKey, setMetricKey] = useState('ptr');
   const [country, setCountry] = useState('Vietnam');
   const [liveMetrics, setLiveMetrics] = useState({});
   const [dataStatus, setDataStatus] = useState('idle');
+  const [apiMeta, setApiMeta] = useState({});
 
   useEffect(() => {
     let alive = true;
-    const url = stateDistrictGeoJsonUrl(focusState);
+    setDivision('All divisions');
+    setDivisions([]);
     setDistrict('All districts');
     setDistricts(['All districts']);
-    if (!url) { setDistrictStatus('error'); return () => {}; }
     setDistrictStatus('loading');
-    fetch(url).then((r) => {
-      if (!r.ok) throw new Error('District list failed');
-      return r.json();
-    }).then((json) => {
+    fetch(`/api/geography?state=${encodeURIComponent(focusState)}`).then(async (r) => {
+      const body = await r.json().catch(() => ({}));
+      if (!r.ok) throw body;
+      return body;
+    }).then((body) => {
       if (!alive) return;
-      const names = Array.from(new Set((json.features || []).map(featureName).filter((name) => name && name !== 'Unknown'))).sort((a,b) => a.localeCompare(b));
+      const divisionNames = (body.divisions || []).map((item) => item.name).filter(Boolean);
+      const names = Array.from(new Set((body.districts || []).filter(Boolean))).sort((a,b) => a.localeCompare(b));
+      setDivisions(divisionNames);
       setDistricts(['All districts', ...names]);
-      setDistrictStatus('ready');
+      setDistrictStatus(names.length ? 'ready' : 'error');
     }).catch(() => alive && setDistrictStatus('error'));
     return () => { alive = false; };
   }, [focusState]);
 
   useEffect(() => {
+    if (division === 'All divisions') return;
+    let alive = true;
+    setDistrict('All districts');
+    setDistricts(['All districts']);
+    setDistrictStatus('loading');
+    fetch(`/api/geography?state=${encodeURIComponent(focusState)}&division=${encodeURIComponent(division)}`).then(async (r) => {
+      const body = await r.json().catch(() => ({}));
+      if (!r.ok) throw body;
+      return body;
+    }).then((body) => {
+      if (!alive) return;
+      const names = Array.from(new Set((body.districts || []).filter(Boolean))).sort((a,b) => a.localeCompare(b));
+      setDistricts(['All districts', ...names]);
+      setDistrictStatus(names.length ? 'ready' : 'error');
+    }).catch(() => alive && setDistrictStatus('error'));
+    return () => { alive = false; };
+  }, [focusState, division]);
+
+  useEffect(() => {
     let alive = true;
     const params = new URLSearchParams({ state: focusState });
+    if (division !== 'All divisions') params.set('division', division);
     if (district !== 'All districts') params.set('district', district);
     setDataStatus('loading');
     setLiveMetrics({});
+    setApiMeta({});
     fetch(`/api/education?${params.toString()}`).then(async (r) => {
       const body = await r.json().catch(() => ({}));
       if (!r.ok) throw body;
@@ -168,19 +195,22 @@ export default function EducationDashboard() {
     }).then((body) => {
       if (!alive) return;
       const metrics = normaliseApiPayload(body);
+      setApiMeta({ geographyLevel: body.geographyLevel, stateFallback: body.stateFallback, message: body.message });
       setLiveMetrics(Object.fromEntries(Object.entries(metrics).filter(([,value]) => value !== undefined)));
       setDataStatus(Object.values(metrics).some((value) => value !== undefined) ? 'ready' : 'empty');
     }).catch(() => alive && setDataStatus('empty'));
     return () => { alive = false; };
-  }, [focusState, district]);
+  }, [focusState, division, district]);
 
-  const isStateView = district === 'All districts';
-  const fallback = isStateView ? (STATE_DATA[focusState] || {}) : {};
-  const displayData = { ...fallback, ...liveMetrics };
+  const isStateView = division === 'All divisions' && district === 'All districts';
+  const isDivisionView = division !== 'All divisions' && district === 'All districts';
+  const stateFallback = apiMeta.stateFallback || {};
+  const usesStateContext = !isStateView && Object.keys(liveMetrics).length === 0 && Object.keys(stateFallback).length > 0;
+  const displayData = usesStateContext ? { ...stateFallback } : { ...liveMetrics };
   const hasLive = Object.keys(liveMetrics).length > 0;
   const metric = METRICS.find((m) => m.key === metricKey) || METRICS[0];
   const worldInsight = WORLD_INSIGHTS[country] || WORLD_INSIGHTS.India;
-  const locationLabel = isStateView ? `${focusState} · state overview` : `${district}, ${focusState}`;
+  const locationLabel = isStateView ? `${focusState} · state overview` : isDivisionView ? `${division}, ${focusState}` : `${district}, ${focusState}`;
 
   const gapRows = useMemo(() => METRICS.map((m) => {
     const value = displayData[m.key];
@@ -192,17 +222,18 @@ export default function EducationDashboard() {
 
   return <div className="education-dashboard-full education-v132">
     <section className="edu-toolbar edu-toolbar-simple">
-      <div className="toolbar-intro"><span className="section-tag">Explore education</span><h2>Choose a place</h2><p>Start with a state. Pick a district only when you want a closer view.</p></div>
+      <div className="toolbar-intro"><span className="section-tag">Explore education</span><h2>Choose a place</h2><p>Start with a state. Where a stable division layer exists, you can narrow by division before choosing a district.</p></div>
       <div className="toolbar-controls toolbar-controls-simple">
         <SmartSelect label="State" value={focusState} options={ALL_STATES} onChange={setFocusState}/>
+        {divisions.length > 0 && <SmartSelect label="Division" value={division} options={['All divisions', ...divisions]} onChange={setDivision}/>}
         <SmartSelect label="District" value={district} options={districts} onChange={setDistrict} disabled={districtStatus === 'loading'}/>
       </div>
-      <div className="education-location-status"><strong>{locationLabel}</strong><span>{dataStatus === 'loading' ? 'Checking connected official data…' : hasLive ? 'Connected source data returned for this selection.' : isStateView && STATE_DATA[focusState] ? 'Prototype state values shown while official source mapping is completed.' : 'No source-backed metric returned yet. CurioLens will not substitute another state’s value.'}</span></div>
+      <div className="education-location-status"><strong>{locationLabel}</strong><span>{dataStatus === 'loading' ? 'Checking official education data…' : hasLive ? (apiMeta.geographyLevel === 'district' ? 'District-level source data returned for this selection.' : 'Official UDISE+ state data loaded for this selection.') : (!isStateView && Object.keys(stateFallback).length ? 'District-specific values are not available for this metric yet. Showing clearly labelled state-level UDISE+ context instead.' : 'No source-backed metric returned yet. CurioLens will not substitute another state’s value.')}</span></div>
     </section>
 
     <section className="snapshot-section-v132">
-      <div className="snapshot-section-head"><div><span className="section-tag">At a glance</span><h2>{isStateView ? focusState : district}</h2></div><span>{isStateView ? 'State view' : `${focusState} · District view`}</span></div>
-      <div className="compact-metric-grid">{SNAPSHOTS.map((item) => <CompactMetricCard key={item.key} item={item} data={displayData} live={hasLive}/>)}</div>
+      <div className="snapshot-section-head"><div><span className="section-tag">At a glance</span><h2>{isStateView ? focusState : isDivisionView ? division : district}</h2></div><span>{isStateView ? 'State view' : isDivisionView ? `${focusState} · Division view` : `${focusState} · District view`}</span></div>
+      <div className="compact-metric-grid">{SNAPSHOTS.map((item) => <CompactMetricCard key={item.key} item={item} data={displayData} live={hasLive || usesStateContext} contextLabel={usesStateContext ? `${focusState} state context · district figure unavailable` : undefined}/>)}</div>
     </section>
 
     <section className="primary-data-grid" id="compare">
@@ -216,6 +247,6 @@ export default function EducationDashboard() {
 
     <section className="bottom-insight-grid"><article className="insight-card"><span className="section-tag">Where are the gaps?</span><h2>{focusState} vs available benchmarks</h2><div className="gap-list-modern">{gapRows.map((g) => <div key={g.key}><div><span>{g.label}</span><strong>{g.gap === undefined ? '—' : `${g.gap > 0 ? '+' : ''}${g.gap}${g.key === 'ptr' ? '' : ' pp'}`}</strong></div><div className="gap-rail"><i style={{width:g.gap === undefined ? '0%' : `${Math.min(100,Math.abs(g.gap)*3)}%`}}/></div></div>)}</div></article><article className="insight-card"><span className="section-tag">What could help?</span><h2>Questions worth investigating</h2><ol className="way-forward-list"><li><b>Teacher availability</b><span>Where are classrooms most crowded?</span></li><li><b>Secondary transition</b><span>Where are students leaving before Classes 10–12?</span></li><li><b>Girls’ participation</b><span>Where do persistent participation gaps remain?</span></li><li><b>Learning outcomes</b><span>Are students learning what their grade expects?</span></li></ol></article></section>
 
-    <div className="data-integrity-note"><strong>Data integrity first.</strong> Selection is nationwide, but CurioLens only displays a metric when it has a connected value for that geography. Prototype state values remain visibly marked until replaced by source-backed records.</div>
+    <div className="data-integrity-note"><strong>Data integrity first.</strong> Every State/UT loads its districts through the CurioLens geography API. Division is optional because India does not use one uniform division layer nationwide. Official UDISE+ 2023-24 state data is shown for every State/UT; when a finer geography has no verified metric, CurioLens shows the state figure only as clearly labelled state context.</div>
   </div>;
 }

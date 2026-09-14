@@ -16,6 +16,10 @@ const topics = [
   ['space','Space & Technology','/space-tech/'],
 ];
 
+function NavChevron({ open = false, size = 14 }) {
+  return <svg className={`v9-chevron-icon ${open ? 'is-open' : ''}`} width={size} height={size} viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5.5 7.5 10 12l4.5-4.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>;
+}
+
 function TopicLinks({ mobile = false, onNavigate }) {
   return <div className={mobile ? 'mobile-topic-list' : 'mega-topic-grid'}>
     {topics.map(([icon,label,href]) => <Link href={href} key={href} className="topic-nav-item" onClick={onNavigate}>
@@ -74,7 +78,7 @@ export default function SiteNav() {
       <nav className="v9-desktop-nav" aria-label="Main navigation">
         <Link className="v9-nav-link is-active" href="/"><UiIcon name="home" size={16}/> <span>Home</span></Link>
         <div className="v9-nav-popover" onMouseEnter={() => keepOpen(topicTimer,setTopicOpen)} onMouseLeave={() => delayedClose(topicTimer,setTopicOpen)}>
-          <button className="v9-nav-link v9-nav-button" type="button" aria-expanded={topicOpen} onClick={() => setTopicOpen(v => !v)}><UiIcon name="topics" size={16}/><span>Topics</span><span className="v9-chevron">⌄</span></button>
+          <button className="v9-nav-link v9-nav-button" type="button" aria-expanded={topicOpen} onClick={() => setTopicOpen(v => !v)}><UiIcon name="topics" size={16}/><span>Topics</span><NavChevron open={topicOpen}/></button>
           {topicOpen && <div className="v9-mega-menu" onMouseEnter={() => keepOpen(topicTimer,setTopicOpen)} onMouseLeave={() => delayedClose(topicTimer,setTopicOpen)}>
             <div className="v9-mega-main">
               <span className="menu-kicker">Explore topics</span>
@@ -97,7 +101,7 @@ export default function SiteNav() {
       <div className="v9-header-actions">
         <Link className="v9-icon-button" href="/articles/" aria-label="Search and stories"><UiIcon name="search" size={19}/></Link>
         <div className="v9-nav-popover v9-place-popover" onMouseEnter={() => keepOpen(placeTimer,setPlaceOpen)} onMouseLeave={() => delayedClose(placeTimer,setPlaceOpen)}>
-          <button className="v9-place-button" type="button" aria-expanded={placeOpen} onClick={() => setPlaceOpen(v => !v)}><UiIcon name="pin" size={17}/><span>Select place</span><span>⌄</span></button>
+          <button className="v9-place-button" type="button" aria-expanded={placeOpen} onClick={() => setPlaceOpen(v => !v)}><UiIcon name="pin" size={17}/><span>Select place</span><NavChevron open={placeOpen}/></button>
           {placeOpen && <div onMouseEnter={() => keepOpen(placeTimer,setPlaceOpen)} onMouseLeave={() => delayedClose(placeTimer,setPlaceOpen)}><PlacePicker /></div>}
         </div>
         <button className="v9-mobile-menu-button" type="button" aria-label="Open menu" aria-expanded={mobileOpen} onClick={() => setMobileOpen(true)}><UiIcon name="menu" size={22}/></button>
@@ -114,12 +118,12 @@ export default function SiteNav() {
         </div>
         <div className="mobile-drawer-scroll">
           <Link className="mobile-primary-link" href="/" onClick={closeMobile}><UiIcon name="home" size={20}/> Home</Link>
-          <details className="mobile-nested"><summary><span><UiIcon name="topics" size={20}/> Topics</span><b>⌄</b></summary><TopicLinks mobile onNavigate={closeMobile}/></details>
+          <details className="mobile-nested"><summary><span><UiIcon name="topics" size={20}/> Topics</span><NavChevron size={16}/></summary><TopicLinks mobile onNavigate={closeMobile}/></details>
           <Link className="mobile-menu-link" href="/education/#compare" onClick={closeMobile}><UiIcon name="compare" size={20}/> Compare</Link>
           <Link className="mobile-menu-link" href="/education/#maps" onClick={closeMobile}><UiIcon name="map" size={20}/> Maps</Link>
           <Link className="mobile-menu-link" href="/articles/" onClick={closeMobile}><UiIcon name="stories" size={20}/> Stories</Link>
           <Link className="mobile-menu-link" href="/sources/" onClick={closeMobile}><UiIcon name="sources" size={20}/> Sources</Link>
-          <details className="mobile-nested place-mobile-details"><summary><span><UiIcon name="pin" size={20}/> Choose a place</span><b>⌄</b></summary><PlacePicker mobile onNavigate={closeMobile}/></details>
+          <details className="mobile-nested place-mobile-details"><summary><span><UiIcon name="pin" size={20}/> Choose a place</span><NavChevron size={16}/></summary><PlacePicker mobile onNavigate={closeMobile}/></details>
           <Link className="mobile-menu-link muted-mobile-link" href="/about/" onClick={closeMobile}>About</Link>
         </div>
       </aside>
