@@ -595,13 +595,17 @@ async function topicDemocracy(country) {
 }
 
 async function topicHealth(country) {
-  const [lifeExpectancy, maternalMortality, under5, infantMortality] = await Promise.all([
+  const [lifeExpectancy, maternalMortality, under5, infantMortality, uhcCoverage, tbIncidence, outOfPocket, healthSpend] = await Promise.all([
     worldBank('SP.DYN.LE00.IN', 'World Bank', country).catch(() => null),
     worldBank('SH.STA.MMRT', 'World Bank', country).catch(() => null),
     worldBank('SH.DYN.MORT', 'World Bank', country).catch(() => null),
-    worldBank('SP.DYN.IMRT.IN', 'World Bank', country).catch(() => null)
+    worldBank('SP.DYN.IMRT.IN', 'World Bank', country).catch(() => null),
+    worldBank('SH.UHC.SRVS.CV.XD', 'World Bank / WHO', country).catch(() => null),
+    worldBank('SH.TBS.INCD', 'World Bank / WHO', country).catch(() => null),
+    worldBank('SH.XPD.OOPC.CH.ZS', 'World Bank / WHO', country).catch(() => null),
+    worldBank('SH.XPD.CHEX.GD.ZS', 'World Bank / WHO', country).catch(() => null)
   ]);
-  return { lifeExpectancy, maternalMortality, under5, infantMortality };
+  return { lifeExpectancy, maternalMortality, under5, infantMortality, uhcCoverage, tbIncidence, outOfPocket, healthSpend };
 }
 
 const handlers = {
